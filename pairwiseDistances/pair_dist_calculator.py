@@ -1,5 +1,4 @@
 import numpy as np
-import logging
 from collections import Counter
 
 class PairDistCalculator:
@@ -22,17 +21,6 @@ class PairDistCalculator:
     """
 
     def __init__(self, posns, dim, cutoff_distance=None, track_labels=False, labels=np.array([]), calculate_track_centers=False):
-
-        # Setup the logger
-        self._logger = logging.getLogger(__name__)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(formatter)
-        self._logger.addHandler(ch)
-
-        # Level of logging to display
-        self._logger.setLevel(logging.ERROR)
 
         # vars
         self._dim = dim
@@ -60,19 +48,6 @@ class PairDistCalculator:
 
         # Compute probs
         self._compute_distances()
-
-
-
-    def set_logging_level(self, level):
-        """Sets the logging level.
-
-        Parameters
-        ----------
-        level : logging.level
-            The logging level.
-
-        """
-        self._logger.setLevel(level)
 
 
 
@@ -369,16 +344,14 @@ class PairDistCalculator:
             return # Finished
 
         # Shift idxs such that they do not refer to idx
-        dists_idxs_all = np.arange(self._no_pairs)
-        shift_1 = dists_idxs_all[self._idxs_first_particle >= idx]
+        shift_1 = np.argwhere(self._idxs_first_particle >= idx).flatten()
         self._idxs_first_particle[shift_1] += 1
-        shift_2 = dists_idxs_all[self._idxs_second_particle >= idx]
+        shift_2 = np.argwhere(self._idxs_second_particle >= idx).flatten()
         self._idxs_second_particle[shift_2] += 1
 
-        cutoff_dists_idxs_all = np.arange(self._no_pairs_within_cutoff)
-        shift_1 = cutoff_dists_idxs_all[self._idxs_first_particle_within_cutoff >= idx]
+        shift_1 = np.argwhere(self._idxs_first_particle_within_cutoff >= idx).flatten()
         self._idxs_first_particle_within_cutoff[shift_1] += 1
-        shift_2 = cutoff_dists_idxs_all[self._idxs_second_particle_within_cutoff >= idx]
+        shift_2 = np.argwhere(self._idxs_second_particle_within_cutoff >= idx).flatten()
         self._idxs_second_particle_within_cutoff[shift_2] += 1
 
         # Idxs of particle pairs to add
@@ -472,14 +445,12 @@ class PairDistCalculator:
             return # Finished
 
         # Idxs to delete in the pair list
-        dists_idxs_all = np.arange(self._no_pairs)
-        dists_idxs_delete_1 = dists_idxs_all[self._idxs_first_particle == idx]
-        dists_idxs_delete_2 = dists_idxs_all[self._idxs_second_particle == idx]
+        dists_idxs_delete_1 = np.argwhere(self._idxs_first_particle == idx).flatten()
+        dists_idxs_delete_2 = np.argwhere(self._idxs_second_particle == idx).flatten()
         dists_idxs_delete = np.append(dists_idxs_delete_1,dists_idxs_delete_2)
 
-        cutoff_dists_idxs_all = np.arange(self._no_pairs_within_cutoff)
-        cutoff_dists_idxs_delete_1 = cutoff_dists_idxs_all[self._idxs_first_particle_within_cutoff == idx]
-        cutoff_dists_idxs_delete_2 = cutoff_dists_idxs_all[self._idxs_second_particle_within_cutoff == idx]
+        cutoff_dists_idxs_delete_1 = np.argwhere(self._idxs_first_particle_within_cutoff == idx).flatten()
+        cutoff_dists_idxs_delete_2 = np.argwhere(self._idxs_second_particle_within_cutoff == idx).flatten()
         cutoff_dists_idxs_delete = np.append(cutoff_dists_idxs_delete_1,cutoff_dists_idxs_delete_2)
 
         # Remove all probs associated with this
@@ -496,16 +467,14 @@ class PairDistCalculator:
         self._no_pairs_within_cutoff -= len(cutoff_dists_idxs_delete)
 
         # Shift the idxs such that they again include idx
-        dists_idxs_all = np.arange(self._no_pairs)
-        shift_1 = dists_idxs_all[self._idxs_first_particle > idx]
+        shift_1 = np.argwhere(self._idxs_first_particle > idx)
         self._idxs_first_particle[shift_1] -= 1
-        shift_2 = dists_idxs_all[self._idxs_second_particle > idx]
+        shift_2 = np.argwhere(self._idxs_second_particle > idx)
         self._idxs_second_particle[shift_2] -= 1
 
-        cutoff_dists_idxs_all = np.arange(self._no_pairs_within_cutoff)
-        shift_1 = cutoff_dists_idxs_all[self._idxs_first_particle_within_cutoff > idx]
+        shift_1 = np.argwhere(self._idxs_first_particle_within_cutoff > idx)
         self._idxs_first_particle_within_cutoff[shift_1] -= 1
-        shift_2 = cutoff_dists_idxs_all[self._idxs_second_particle_within_cutoff > idx]
+        shift_2 = np.argwhere(self._idxs_second_particle_within_cutoff > idx)
         self._idxs_second_particle_within_cutoff[shift_2] -= 1
 
 

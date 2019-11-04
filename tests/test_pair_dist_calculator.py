@@ -191,7 +191,7 @@ class Test:
         self.make_particles()
 
         cutoff_distance = 0.3
-        pdc = PairDistCalculator(self.posns, self.dim, calculate_track_centers=True)
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, calculate_track_centers=True)
 
         # Shape of centers
         n_choose_2 = self.n * (self.n-1) / 2

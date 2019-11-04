@@ -32,9 +32,9 @@ A further improvement used in most applications (but not implemented for you her
 
 3. *Labels*: Optional labels can be attached to every particle to keep track of them. The method `get_particle_idx_from_label` can be used to retrieve an index from a label by searching a numpy array with `argwhere` (note that this may be slow).
 
-4. [TBD] *Centers*: Optional centers `(x_i + x_j)/2` can also be computed for every pair of particles.
+4. *Centers*: Optional centers `(x_i + x_j)/2` can also be computed and tracked for every pair of particles. As before, adding/removing/moving particles are all `O(n)` operations here.
 
-5. [TBD] *Multiple species*: ???
+5. *Different species*: All the same jazz as above, but now the input are two lists of particles, and we are only interested in the cross-species (cross-list) distances between particles. In other words, let the first list be the particles of species `A`, and the second list of species `B`. In this application, we are only interested in the distances between `A-B`, and not `A-A` or `B-B`. If they are of length `nA` and `nB`, this is then `nA*nB` distances, rather than `((nA+nB) choose 2) = (nA+nB) * (nA+nB-1) / 2` distances.
 
 ## Examples
 
