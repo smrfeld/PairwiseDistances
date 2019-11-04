@@ -277,3 +277,14 @@ class Test:
             assert True
         except:
             assert False
+
+    def test_remove_all_particles(self):
+
+        self.make_particles()
+
+        cutoff_dist = 0.3
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
+
+        pdc.remove_all_particles()
+
+        assert pdc.n == 0

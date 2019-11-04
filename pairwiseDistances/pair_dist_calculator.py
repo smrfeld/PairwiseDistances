@@ -484,6 +484,18 @@ class PairDistCalculator:
 
 
 
+    def remove_all_particles(self):
+        """Remove all particles.
+
+        """
+        self._posns = np.array([]).astype(float)
+        self._n = 0
+        self._labels = np.array([])
+        self._reset()
+        self._are_dists_valid = True
+
+
+
     def remove_particle(self, idx, keep_dists_valid=True):
         """Remove a particle, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 

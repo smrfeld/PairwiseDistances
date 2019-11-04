@@ -359,3 +359,15 @@ class TestDifferentSpecies:
             assert True
         except:
             assert False
+
+    def test_remove_all_particles(self):
+
+        self.make_particles()
+
+        cutoff_dist = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
+
+        pdc.remove_all_particles()
+
+        assert pdc.n_species_A == 0
+        assert pdc.n_species_B == 0
