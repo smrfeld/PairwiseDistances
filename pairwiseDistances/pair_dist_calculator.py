@@ -2,24 +2,20 @@ import numpy as np
 import logging
 
 class PairDistCalculator:
-    """Calculates distances for a set of particles.
+    """Calculates pairwise distances for a set of particles.
 
-    Attributes:
-    posns (np.array([[float]])): particle positions. First axis are particles, seconds are coordinates in n-dimensional space
-    dim (int): dimensionality of each point. This needs to be specified because you can pass: posns = [].
-    n (int): number of particles
-    cutoff_distance (float): cutoff distance, else None
-    labels (np.array([?])): optional labels to keep track of for each particle, else []. The type can be of your choosing
+    Parameters
+    ----------
+    posns : np.array([[float]])
+        Particle positions. First axis are particles, second are coordinates in n-dimensional space.
+    dim : int
+        Dimensionality of each point >= 1. This needs to be specified because you can pass: posns = [].
+    cutoff_distance : float
+        Optional cutoff distance (the default is None).
+    labels : np.array([?])
+        Optional labels which can in principle be any type (the default is np.array([])).
 
-    dists_idxs_first_particle (np.array([int])): idx of the first particle. Only unique combinations together with idxs 2
-    dists_idxs_second_particle (np.array([int])): idx of the second particle. Only unique combinations together with idxs 1
-    dists_squared (np.array(float)): distances squared between all particles
-    no_dists (int): # distances
-
-    Private attributes:
-    _logger (logger): logging
     """
-
 
     def __init__(self, posns, dim, cutoff_distance=None, labels=np.array([])):
 
@@ -36,10 +32,10 @@ class PairDistCalculator:
 
         # vars
         self._dim = dim
-        self._posns = posns
+        self._posns = np.copy(posns)
         self._n = len(self._posns)
         self._cutoff_distance = cutoff_distance
-        self._labels = labels
+        self._labels = np.copy(labels)
 
         # Initialize all manner of other properties for possible later use
         self._reset()
@@ -50,10 +46,13 @@ class PairDistCalculator:
 
 
     def set_logging_level(self, level):
-        """Sets the logging level
+        """Sets the logging level.
 
-        Args:
-        level (logging): logging level
+        Parameters
+        ----------
+        level : logging.level
+            The logging level.
+
         """
         self._logger.setLevel(level)
 
@@ -62,63 +61,170 @@ class PairDistCalculator:
     # Various getters
     @property
     def posns(self):
+        """Get the positions.
+
+        Returns
+        -------
+        np.array([[float]])
+            The particle positions.
+
+        """
         return self._posns
 
     @property
     def dim(self):
+        """Get the dimensionality of the particles.
+
+        Returns
+        -------
+        int
+            Dimensionality >= 1.
+
+        """
         return self._dim
 
     @property
     def n(self):
+        """Get the number of particles.
+
+        Returns
+        -------
+        int
+            The number of particles.
+
+        """
         return self._n
 
     @property
     def labels(self):
+        """Get the labels.
+
+        Returns
+        -------
+        np.array([?])
+            The labels for each particle, of length n.
+
+        """
         return self._labels
 
     @property
     def dists_squared(self):
+        """Get the distances squared between ALL particles.
+
+        Returns
+        -------
+        np.array([float])
+            The square distances between particles, of length (n choose 2).
+
+        """
         return self._dists_squared
 
     @property
     def dists_idxs_first_particle(self):
+        """Get the indexes of the first particle in dists_squared.
+
+        Returns
+        -------
+        np.array([int])
+            The indexes of the first particle in dists_squared, of length (n choose 2).
+
+        """
         return self._dists_idxs_first_particle
 
     @property
     def dists_idxs_second_particle(self):
+        """Get the indexes of the second particle in dists_squared.
+
+        Returns
+        -------
+        np.array([int])
+            The indexes of the second particle in dists_squared, of length (n choose 2).
+
+        """
         return self._dists_idxs_second_particle
 
     @property
     def no_dists(self):
+        """Get the number of distances in dists_squared.
+
+        Returns
+        -------
+        int
+            Equivalent to (n choose 2).
+
+        """
         return self._no_dists
 
     @property
     def cutoff_distance(self):
+        """Get the cutoff distance.
+
+        Returns
+        -------
+        float or None
+            The cutoff distance, else None.
+
+        """
         return self._cutoff_distance
 
     @property
     def cutoff_dists_squared(self):
+        """Get the distances squared between particles which are within the cutoff distance (i.e. apply the cutoff_distance to dists_squared).
+
+        Returns
+        -------
+        np.array([float])
+            The distances squared, of length <= (n choose 2).
+
+        """
         return self._cutoff_dists_squared
 
     @property
     def cutoff_dists_idxs_first_particle(self):
+        """Get the indexes of the first particle in cutoff_dists_squared.
+
+        Returns
+        -------
+        np.array([int])
+            The indexes of the second particle in cutoff_dists_squared, of length <= (n choose 2).
+
+        """
         return self._cutoff_dists_idxs_first_particle
 
     @property
     def cutoff_dists_idxs_second_particle(self):
+        """Get the indexes of the second particle in cutoff_dists_squared.
+
+        Returns
+        -------
+        np.array([int])
+            The indexes of the second particle in cutoff_dists_squared, of length <= (n choose 2).
+
+        """
         return self._cutoff_dists_idxs_second_particle
 
     @property
     def no_cutoff_dists(self):
+        """Get the number of cutoff_dists_squared.
+
+        Returns
+        -------
+        int
+            The length of cutoff_dists_squared, which is <= (n choose 2).
+
+        """
         return self._no_cutoff_dists
 
 
 
     def set_cutoff_distance(self, cutoff_distance):
-        """Set a new cutoff distance (or None).
+        """Set a new cutoff distance (recalculates all cutoff_dists_squared).
 
-        Args:
-        cutoff_distance (float): the cutoff distance, else None
+        Parameters
+        ----------
+        cutoff_distance : float
+            The new cutoff distance, else None.
+
         """
 
         self._cutoff_distance = cutoff_distance
@@ -129,8 +235,7 @@ class PairDistCalculator:
 
 
     def _reset(self):
-        """Reset structures
-        """
+
         self._dists_squared = np.array([]).astype(float)
         self._dists_idxs_first_particle = np.array([]).astype(int)
         self._dists_idxs_second_particle = np.array([]).astype(int)
@@ -144,8 +249,6 @@ class PairDistCalculator:
 
 
     def _compute_distances(self):
-        """Compute normalized probabilities.
-        """
 
         # Check there are sufficient particles
         if self._n < 2:
@@ -167,8 +270,6 @@ class PairDistCalculator:
 
 
     def _cut_off_distances(self):
-        """Compute normalized probabilities given distances squared
-        """
 
         # Clip distances at std_dev_clip_mult * sigma
         if self._cutoff_distance != None:
@@ -193,11 +294,15 @@ class PairDistCalculator:
 
 
     def add_particle(self, idx, posn):
-        """Add a particle
+        """Add a particle, performing O(n) calculation to keep pairwise distances correct.
 
-        Args:
-        idx (int): position at which to insert the particle
-        posn (np.array([float])): position in d dimensions
+        Parameters
+        ----------
+        idx : int
+            The idx of the particle in the posn list.
+        posn : np.array([float])
+            The position, of length dim.
+
         """
 
         self._posns = np.insert(self._posns,idx,posn,axis=0)
@@ -258,10 +363,13 @@ class PairDistCalculator:
 
 
     def remove_particle(self, idx):
-        """Remove a particle
+        """Remove a particle, performing O(n) calculation to keep pairwise distances correct.
 
-        Args:
-        idx (int): idx of the particle to remove
+        Parameters
+        ----------
+        idx : int
+            The idx of the particle in the posn list.
+
         """
 
         self._posns = np.delete(self._posns,idx,axis=0)
@@ -308,11 +416,15 @@ class PairDistCalculator:
 
 
     def move_particle(self, idx, new_posn):
-        """Move a particle
+        """Move a particle, performing O(n) calculation to keep pairwise distances correct.
 
-        Args:
-        idx (int): idx of the particle to move
-        new_posn (np.array([float])): new position in d dimensions
+        Parameters
+        ----------
+        idx : int
+            The idx of the particle in the posn list.
+        new_posn : np.array([float])
+            The new position, of length dim.
+
         """
 
         # Remove and reinsert
@@ -321,7 +433,20 @@ class PairDistCalculator:
 
 
 
-    def get_particle_idxs_within_cutoff_radius_to_particle_with_label(self, particle_label):
+    def get_particle_idxs_within_cutoff_distance_to_particle_with_label(self, particle_label):
+        """Get list of indexes of particles that are within the cutoff distance to a given particle.
+
+        Parameters
+        ----------
+        particle_label : ?
+            The particle label.
+
+        Returns
+        -------
+        np.array([int])
+            List of particle indexes.
+
+        """
 
         idxs = self._labels == particle_label
         if len(idxs) == 0:
@@ -329,11 +454,24 @@ class PairDistCalculator:
         elif len(idxs) > 1:
             raise ValueError("Particle label: %s is not unique!" % str(particle_label))
         else:
-            return self.get_particle_idxs_within_cutoff_radius_to_particle_with_idx(particle_idx=idxs[0])
+            return self.get_particle_idxs_within_cutoff_distance_to_particle_with_idx(particle_idx=idxs[0])
 
 
 
-    def get_particle_idxs_within_cutoff_radius_to_particle_with_idx(self, particle_idx):
+    def get_particle_idxs_within_cutoff_distance_to_particle_with_idx(self, particle_idx):
+        """Get list of indexes of particles that are within the cutoff distance to a given particle.
+
+        Parameters
+        ----------
+        particle_idx : int
+            The index of the particle.
+
+        Returns
+        -------
+        np.array([int])
+            List of particle indexes.
+
+        """
 
         idxs_1 = self._cutoff_dists_idxs_first_particle == particle_idx
         other_particle_idxs_1 = self._cutoff_dists_idxs_second_particle[idxs_1]
