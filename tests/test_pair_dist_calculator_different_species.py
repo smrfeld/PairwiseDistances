@@ -304,3 +304,58 @@ class TestDifferentSpecies:
 
         # Shape of centers
         assert pdc.centers.shape == ((self.n_A)*(self.n_B), self.dim)
+
+    def test_invalidate_dists(self):
+
+        self.make_particles()
+
+        cutoff_distance = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+
+        # Add particle
+        posn_add = np.random.rand(3)
+        idx = 10
+        pdc.add_particle_of_species_A(idx, posn_add, keep_dists_valid=False)
+
+        try:
+            tmp = pdc.dists_squared # this should fail
+            assert False
+        except:
+            assert True
+
+        # Recompute dists
+        pdc.compute_distances()
+
+        # Remove a particle
+        idx = 14
+        pdc.remove_particle_of_species_B(idx, keep_dists_valid=False)
+
+        try:
+            tmp = pdc.dists_squared # this should fail
+            assert False
+        except:
+            assert True
+
+        # Recompute dists
+        pdc.compute_distances()
+
+        # Move a particle
+        posn_move = np.random.rand(3)
+        idx = 12
+        pdc.move_particle_of_species_A(idx, posn_move, keep_dists_valid=False)
+
+        try:
+            tmp = pdc.dists_squared # this should fail
+            assert False
+        except:
+            assert True
+
+        # Recompute dists
+        pdc.compute_distances()
+
+        # Now all should be OK
+        try:
+            tmp = pdc.dists_squared
+            assert True
+        except:
+            assert False

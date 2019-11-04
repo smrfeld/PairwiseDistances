@@ -59,11 +59,22 @@ class PairDistCalculatorDifferentSpecies:
         self._reset()
 
         # Compute probs
-        self._compute_distances()
+        self.compute_distances()
 
 
 
     # Various getters
+    @property
+    def are_dists_valid(self):
+        """Get whether the pairwise distances are currently valid.
+
+        Returns
+        ---
+        bool
+            True if they are valid, otherwise False.
+        """
+        return self._are_dists_valid
+
     @property
     def posns_species_A(self):
         """Get the positions of the first species.
@@ -170,7 +181,10 @@ class PairDistCalculatorDifferentSpecies:
             The square distances between particles, of length n_first_species*n_second_species.
 
         """
-        return self._dists_squared
+        if self._are_dists_valid:
+            return self._dists_squared
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def idxs_first_particle_of_species_A(self):
@@ -182,7 +196,10 @@ class PairDistCalculatorDifferentSpecies:
             The indexes of the first particle in dists_squared, of length (n choose 2).
 
         """
-        return self._idxs_first_particle_of_species_A
+        if self._are_dists_valid:
+            return self._idxs_first_particle_of_species_A
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def idxs_second_particle_of_species_B(self):
@@ -194,7 +211,10 @@ class PairDistCalculatorDifferentSpecies:
             The indexes of the second particle in dists_squared, of length (n choose 2).
 
         """
-        return self._idxs_second_particle_of_species_B
+        if self._are_dists_valid:
+            return self._idxs_second_particle_of_species_B
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def no_pairs(self):
@@ -206,7 +226,10 @@ class PairDistCalculatorDifferentSpecies:
             Equivalent to (n choose 2).
 
         """
-        return self._no_pairs
+        if self._are_dists_valid:
+            return self._no_pairs
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def centers(self):
@@ -218,7 +241,10 @@ class PairDistCalculatorDifferentSpecies:
             The centers array of size (n choose 2) x dim if they are calculated, else empty array.
 
         """
-        return self._centers
+        if self._are_dists_valid:
+            return self._centers
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def cutoff_distance(self):
@@ -242,7 +268,10 @@ class PairDistCalculatorDifferentSpecies:
             The indexes of the first particle, of length <= (n choose 2).
 
         """
-        return self._idxs_first_particle_of_species_A_within_cutoff
+        if self._are_dists_valid:
+            return self._idxs_first_particle_of_species_A_within_cutoff
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def idxs_second_particle_of_species_B_within_cutoff(self):
@@ -254,7 +283,10 @@ class PairDistCalculatorDifferentSpecies:
             The indexes of the second particle, of length <= (n choose 2).
 
         """
-        return self._idxs_second_particle_of_species_B_within_cutoff
+        if self._are_dists_valid:
+            return self._idxs_second_particle_of_species_B_within_cutoff
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
     @property
     def no_pairs_within_cutoff(self):
@@ -266,28 +298,40 @@ class PairDistCalculatorDifferentSpecies:
             The length, which is <= (n choose 2).
 
         """
-        return self._no_pairs_within_cutoff
+        if self._are_dists_valid:
+            return self._no_pairs_within_cutoff
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
 
 
-    def set_cutoff_distance(self, cutoff_distance):
+    def set_cutoff_distance(self, cutoff_distance, keep_dists_valid=True):
         """Set a new cutoff distance (recalculates all cutoff particles).
 
         Parameters
         ----------
         cutoff_distance : float
             The new cutoff distance, else None.
+        keep_dists_valid : bool
+            Whether to keep the pairwise distances valid (the default is True).
 
         """
 
         self._cutoff_distance = cutoff_distance
 
-        # Distances are still valid; recompute probs
-        self._cut_off_distances()
+        if keep_dists_valid:
+            if self._are_dists_valid:
+                # Distances are still valid; recompute probs
+                self._cut_off_distances()
+            else:
+                # Distances are not valid to begin with; recompute
+                self.compute_distances() # also runs _cut_off_distances
 
 
 
     def _reset(self):
+
+        self._are_dists_valid = False
 
         self._dists_squared = np.array([]).astype(float)
         self._centers = np.array([]).astype(float)
@@ -301,11 +345,12 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def _compute_distances(self):
+    def compute_distances(self):
 
         # Check there are sufficient particles
         if self._n_species_A == 0 or self._n_species_B == 0:
             self._reset()
+            self._are_dists_valid = True
             return
 
         self._idxs_first_particle_of_species_A = np.array([]).astype(int)
@@ -325,6 +370,9 @@ class PairDistCalculatorDifferentSpecies:
 
         # Cut off the distances
         self._cut_off_distances()
+
+        # Valid
+        self._are_dists_valid = True
 
 
 
@@ -351,8 +399,8 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def add_particle_of_species_A(self, idx, posn, label=None, check_labels_unique=False):
-        """Add a particle of species A, performing O(n) calculation to keep pairwise distances correct.
+    def add_particle_of_species_A(self, idx, posn, label=None, check_labels_unique=False, keep_dists_valid=True):
+        """Add a particle of species A, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
@@ -364,6 +412,8 @@ class PairDistCalculatorDifferentSpecies:
             Optional label for the new particle (the default is None).
         check_labels_unique : bool
             Whether to check if labels are unique (the default is None).
+        keep_dists_valid : bool
+            Whether to keep pairwise dists valid, comprising an O(n) calculation (the default is None).
 
         """
 
@@ -393,6 +443,16 @@ class PairDistCalculatorDifferentSpecies:
         if self._n_species_A == 1:
             return # Finished
 
+        # If we are not keeping pairwise dists valid, we are done
+        if not keep_dists_valid:
+            self._are_dists_valid = False
+            return
+
+        # If the dists are not valid to begin, need to recompute
+        if not self._are_dists_valid:
+            self.compute_distances()
+            return
+
         # Shift idxs such that they do not refer to idx
         shift_1 = np.argwhere(self._idxs_first_particle_of_species_A >= idx).flatten()
         self._idxs_first_particle_of_species_A[shift_1] += 1
@@ -411,8 +471,8 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def add_particle_of_species_B(self, idx, posn, label=None, check_labels_unique=False):
-        """Add a particle of species B, performing O(n) calculation to keep pairwise distances correct.
+    def add_particle_of_species_B(self, idx, posn, label=None, check_labels_unique=False, keep_dists_valid=True):
+        """Add a particle of species B, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
@@ -424,6 +484,8 @@ class PairDistCalculatorDifferentSpecies:
             Optional label for the new particle (the default is None).
         check_labels_unique : bool
             Whether to check if labels are unique (the default is None).
+        keep_dists_valid : bool
+            Whether to keep pairwise dists valid, comprising an O(n) calculation (the default is None).
 
         """
 
@@ -452,6 +514,16 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._n_species_B == 1:
             return # Finished
+
+        # If we are not keeping pairwise dists valid, we are done
+        if not keep_dists_valid:
+            self._are_dists_valid = False
+            return
+
+        # If the dists are not valid to begin, need to recompute
+        if not self._are_dists_valid:
+            self.compute_distances()
+            return
 
         # Shift idxs such that they do not refer to idx
         shift_1 = np.argwhere(self._idxs_second_particle_of_species_B >= idx).flatten()
@@ -566,13 +638,15 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def remove_particle_of_species_A(self, idx):
-        """Remove a particle of species A, performing O(n) calculation to keep pairwise distances correct.
+    def remove_particle_of_species_A(self, idx, keep_dists_valid=True):
+        """Remove a particle of species A, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
         idx : int
             The idx of the particle in the posn list.
+        keep_dists_valid : bool
+            Whether the keep the pairwise distances valid (the default is True).
 
         """
 
@@ -585,6 +659,16 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._n_species_A == 0:
             return # Finished
+
+        # If we are not keeping pairwise distances valid, we are done
+        if not keep_dists_valid:
+            self._are_dists_valid = False
+            return
+
+        # If the distances are not valid to begin, need to recompute
+        if not self._are_dists_valid:
+            self.compute_distances()
+            return
 
         # Idxs to delete in the pair list
         dists_idxs_delete = np.argwhere(self._idxs_first_particle_of_species_A == idx).flatten()
@@ -602,13 +686,15 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def remove_particle_of_species_B(self, idx):
-        """Remove a particle of species B, performing O(n) calculation to keep pairwise distances correct.
+    def remove_particle_of_species_B(self, idx, keep_dists_valid=True):
+        """Remove a particle of species B, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
         idx : int
             The idx of the particle in the posn list.
+        keep_dists_valid : bool
+            Whether the keep the pairwise distances valid (the default is True).
 
         """
 
@@ -621,6 +707,16 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._n_species_B == 0:
             return # Finished
+
+        # If we are not keeping pairwise distances valid, we are done
+        if not keep_dists_valid:
+            self._are_dists_valid = False
+            return
+
+        # If the distances are not valid to begin, need to recompute
+        if not self._are_dists_valid:
+            self.compute_distances()
+            return
 
         # Idxs to delete in the pair list
         dists_idxs_delete = np.argwhere(self._idxs_second_particle_of_species_B == idx).flatten()
@@ -655,8 +751,8 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def move_particle_of_species_A(self, idx, new_posn):
-        """Move a particle of species A, performing O(n) calculation to keep pairwise distances correct.
+    def move_particle_of_species_A(self, idx, new_posn, keep_dists_valid=True):
+        """Move a particle of species A, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
@@ -664,6 +760,8 @@ class PairDistCalculatorDifferentSpecies:
             The idx of the particle in the posn list.
         new_posn : np.array([float])
             The new position, of length dim.
+        keep_dists_valid : bool
+            Whether to keep the pairwise distances correct (the default is True).
 
         """
 
@@ -671,18 +769,18 @@ class PairDistCalculatorDifferentSpecies:
             label = self._labels_species_A[idx]
 
             # Remove and reinsert
-            self.remove_particle_of_species_A(idx)
-            self.add_particle_of_species_A(idx, new_posn, label=label, check_labels_unique=False)
+            self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_A(idx, new_posn, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
-            self.remove_particle_of_species_A(idx)
-            self.add_particle_of_species_A(idx, new_posn)
+            self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_A(idx, new_posn, keep_dists_valid=keep_dists_valid)
 
 
 
-    def move_particle_of_species_B(self, idx, new_posn):
+    def move_particle_of_species_B(self, idx, new_posn, keep_dists_valid=True):
         """Move a particle of species B, performing O(n) calculation to keep pairwise distances correct.
 
         Parameters
@@ -691,6 +789,8 @@ class PairDistCalculatorDifferentSpecies:
             The idx of the particle in the posn list.
         new_posn : np.array([float])
             The new position, of length dim.
+        keep_dists_valid : bool
+            Whether to keep the pairwise distances correct (the default is True).
 
         """
 
@@ -698,14 +798,14 @@ class PairDistCalculatorDifferentSpecies:
             label = self._labels_species_B[idx]
 
             # Remove and reinsert
-            self.remove_particle_of_species_B(idx)
-            self.add_particle_of_species_B(idx, new_posn, label=label, check_labels_unique=False)
+            self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_B(idx, new_posn, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
-            self.remove_particle_of_species_B(idx)
-            self.add_particle_of_species_B(idx, new_posn)
+            self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_B(idx, new_posn, keep_dists_valid=keep_dists_valid)
 
 
 
@@ -723,6 +823,9 @@ class PairDistCalculatorDifferentSpecies:
             List of particle indexes.
 
         """
+
+        if not self._are_dists_valid:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
         return self._idxs_second_particle_of_species_B_within_cutoff[self._idxs_first_particle_of_species_A_within_cutoff == idx]
 
@@ -742,5 +845,8 @@ class PairDistCalculatorDifferentSpecies:
             List of particle indexes.
 
         """
+
+        if not self._are_dists_valid:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
         return self._idxs_first_particle_of_species_A_within_cutoff[self._idxs_second_particle_of_species_B_within_cutoff == idx]

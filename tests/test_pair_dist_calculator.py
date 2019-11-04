@@ -222,3 +222,58 @@ class Test:
         # Shape of centers
         n_choose_2 = self.n * (self.n-1) / 2
         assert pdc.centers.shape == (n_choose_2, self.dim)
+
+    def test_invalidate_dists(self):
+
+        self.make_particles()
+
+        cutoff_distance = 0.3
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+
+        # Add particle
+        posn_add = np.random.rand(3)
+        idx = 10
+        pdc.add_particle(idx, posn_add, keep_dists_valid=False)
+
+        try:
+            tmp = pdc.dists_squared # this should fail
+            assert False
+        except:
+            assert True
+
+        # Recompute dists
+        pdc.compute_distances()
+
+        # Remove a particle
+        idx = 30
+        pdc.remove_particle(idx, keep_dists_valid=False)
+
+        try:
+            tmp = pdc.dists_squared # this should fail
+            assert False
+        except:
+            assert True
+
+        # Recompute dists
+        pdc.compute_distances()
+
+        # Move a particle
+        posn_move = np.random.rand(3)
+        idx = 12
+        pdc.move_particle(idx, posn_move, keep_dists_valid=False)
+
+        try:
+            tmp = pdc.dists_squared # this should fail
+            assert False
+        except:
+            assert True
+
+        # Recompute dists
+        pdc.compute_distances()
+
+        # Now all should be OK
+        try:
+            tmp = pdc.dists_squared
+            assert True
+        except:
+            assert False
