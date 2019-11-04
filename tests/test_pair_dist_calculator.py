@@ -40,8 +40,8 @@ class Test:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
 
         # Check length
         length = len(pdc.idxs_first_particle_within_cutoff)
@@ -52,8 +52,8 @@ class Test:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
 
         original_shape = copy.copy(self.n)
 
@@ -76,8 +76,8 @@ class Test:
         self.make_particles()
         self.make_labels()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels=self.labels)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist, track_labels=True, labels=self.labels)
 
         original_shape = copy.copy(self.n)
 
@@ -94,8 +94,8 @@ class Test:
         self.make_particles()
         self.make_labels()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels=self.labels)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist, track_labels=True, labels=self.labels)
 
         original_shape = copy.copy(self.n)
 
@@ -118,8 +118,8 @@ class Test:
         self.make_particles()
         self.make_labels()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels=self.labels)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist, track_labels=True, labels=self.labels)
 
         idx = 53
         label = self.labels[idx]
@@ -131,8 +131,8 @@ class Test:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
 
         original_shape = copy.copy(self.n)
 
@@ -152,8 +152,8 @@ class Test:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
 
         original_shape = copy.copy(self.n)
 
@@ -170,17 +170,17 @@ class Test:
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
 
-    def test_get_idxs_within_cutoff_distance(self):
+    def test_get_idxs_within_cutoff_dist(self):
 
         self.make_particles()
 
-        cutoff_distance = 0.3
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.3
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
 
         # Go through all particles
         count_no_pairs_within_cutoff = 0
         for idx in range(0,pdc.n):
-            idxs_within_cutoff = pdc.get_particle_idxs_within_cutoff_distance_to_particle_with_idx(idx)
+            idxs_within_cutoff = pdc.get_particle_idxs_within_cutoff_dist_to_particle_with_idx(idx)
             count_no_pairs_within_cutoff += len(idxs_within_cutoff)
 
         # These should match, although we double counted => factor 2
@@ -190,8 +190,8 @@ class Test:
 
         self.make_particles()
 
-        cutoff_distance = 0.3
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, calculate_track_centers=True)
+        cutoff_dist = 0.3
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist, calculate_track_centers=True)
 
         # Shape of centers
         n_choose_2 = self.n * (self.n-1) / 2
@@ -227,8 +227,8 @@ class Test:
 
         self.make_particles()
 
-        cutoff_distance = 0.3
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.3
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
 
         # Add particle
         posn_add = np.random.rand(3)
@@ -242,7 +242,7 @@ class Test:
             assert True
 
         # Recompute dists
-        pdc.compute_distances()
+        pdc.compute_dists()
 
         # Remove a particle
         idx = 30
@@ -255,7 +255,7 @@ class Test:
             assert True
 
         # Recompute dists
-        pdc.compute_distances()
+        pdc.compute_dists()
 
         # Move a particle
         posn_move = np.random.rand(3)
@@ -269,7 +269,7 @@ class Test:
             assert True
 
         # Recompute dists
-        pdc.compute_distances()
+        pdc.compute_dists()
 
         # Now all should be OK
         try:

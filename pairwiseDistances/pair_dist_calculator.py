@@ -10,7 +10,7 @@ class PairDistCalculator:
         Particle positions. First axis are particles, second are coordinates in n-dimensional space.
     dim : int
         Dimensionality of each point >= 1. This needs to be specified because you can pass: posns = [].
-    cutoff_distance : float
+    cutoff_dist : float
         Optional cutoff distance (the default is None).
     track_labels : bool
         Whether to track labels or not (the default is False).
@@ -20,13 +20,13 @@ class PairDistCalculator:
         Whether to calculate and track centers (x_i + x_j)/2 for each pair of particles in addition to the distances (the default is False).
     """
 
-    def __init__(self, posns, dim, cutoff_distance=None, track_labels=False, labels=np.array([]), calculate_track_centers=False):
+    def __init__(self, posns, dim, cutoff_dist=None, track_labels=False, labels=np.array([]), calculate_track_centers=False):
 
         # vars
         self._dim = dim
         self._posns = np.copy(posns)
         self._n = len(self._posns)
-        self._cutoff_distance = cutoff_distance
+        self._cutoff_dist = cutoff_dist
         self._calculate_track_centers = calculate_track_centers
 
         self._track_labels = track_labels
@@ -47,7 +47,7 @@ class PairDistCalculator:
         self._reset()
 
         # Compute probs
-        self.compute_distances()
+        self.compute_dists()
 
 
 
@@ -199,7 +199,7 @@ class PairDistCalculator:
             raise ValueError("Pairwise distances (and centers) are currently invalid. Run compute_dists first.")
 
     @property
-    def cutoff_distance(self):
+    def cutoff_dist(self):
         """Get the cutoff distance.
 
         Returns
@@ -208,7 +208,7 @@ class PairDistCalculator:
             The cutoff distance, else None.
 
         """
-        return self._cutoff_distance
+        return self._cutoff_dist
 
     @property
     def idxs_first_particle_within_cutoff(self):
@@ -257,27 +257,27 @@ class PairDistCalculator:
 
 
 
-    def set_cutoff_distance(self, cutoff_distance, keep_dists_valid=True):
+    def set_cutoff_dist(self, cutoff_dist, keep_dists_valid=True):
         """Set a new cutoff distance (recalculates all cutoff particles).
 
         Parameters
         ----------
-        cutoff_distance : float
+        cutoff_dist : float
             The new cutoff distance, else None.
         keep_dists_valid : bool
             Whether to keep the pairwise distances valid (the default is True).
 
         """
 
-        self._cutoff_distance = cutoff_distance
+        self._cutoff_dist = cutoff_dist
 
         if keep_dists_valid:
             if self._are_dists_valid:
                 # Distances are still valid; recompute probs
-                self._cut_off_distances()
+                self._cut_off_dists()
             else:
                 # Distances are not valid to begin with; recompute
-                self.compute_distances() # also runs _cut_off_distances
+                self.compute_dists() # also runs _cut_off_dists
 
 
 
@@ -297,7 +297,7 @@ class PairDistCalculator:
 
 
 
-    def compute_distances(self):
+    def compute_dists(self):
 
         # Check there are sufficient particles
         if self._n < 2:
@@ -319,22 +319,22 @@ class PairDistCalculator:
             self._centers = 0.5 * (self._posns[self._idxs_first_particle] + self._posns[self._idxs_second_particle])
 
         # Cut off the distances
-        self._cut_off_distances()
+        self._cut_off_dists()
 
         # Valid
         self._are_dists_valid = True
 
 
 
-    def _cut_off_distances(self):
+    def _cut_off_dists(self):
 
         # Clip distances at std_dev_clip_mult * sigma
-        if self._cutoff_distance != None:
-            cutoff_distance_squared = pow(self._cutoff_distance,2)
+        if self._cutoff_dist != None:
+            cutoff_dist_squared = pow(self._cutoff_dist,2)
 
             # Eliminate beyond max dist
             stacked = np.array([self._idxs_first_particle,self._idxs_second_particle,self._dists_squared]).T
-            self._idxs_first_particle_within_cutoff, self._idxs_second_particle_within_cutoff, _ = stacked[stacked[:,2] < cutoff_distance_squared].T
+            self._idxs_first_particle_within_cutoff, self._idxs_second_particle_within_cutoff, _ = stacked[stacked[:,2] < cutoff_dist_squared].T
             self._idxs_first_particle_within_cutoff = self._idxs_first_particle_within_cutoff.astype(int)
             self._idxs_second_particle_within_cutoff = self._idxs_second_particle_within_cutoff.astype(int)
 
@@ -400,7 +400,7 @@ class PairDistCalculator:
 
         # If the dists are not valid to begin, need to recompute
         if not self._are_dists_valid:
-            self.compute_distances()
+            self.compute_dists()
             return
 
         # Shift idxs such that they do not refer to idx
@@ -437,12 +437,12 @@ class PairDistCalculator:
         self._no_pairs += len(dists_squared_add)
 
         # Max dist
-        if self._cutoff_distance != None:
-            cutoff_distance_squared = pow(self._cutoff_distance,2)
+        if self._cutoff_dist != None:
+            cutoff_dist_squared = pow(self._cutoff_dist,2)
 
             # Filter by max dist
             stacked = np.array([idxs_add_1,idxs_add_2,dists_squared_add]).T
-            idxs_add_1, idxs_add_2, dists_squared_add = stacked[stacked[:,2] < cutoff_distance_squared].T
+            idxs_add_1, idxs_add_2, dists_squared_add = stacked[stacked[:,2] < cutoff_dist_squared].T
 
             # Back to integers
             idxs_add_1 = idxs_add_1.astype(int)
@@ -513,7 +513,7 @@ class PairDistCalculator:
 
         # If the distances are not valid to begin, need to recompute
         if not self._are_dists_valid:
-            self.compute_distances()
+            self.compute_dists()
             return
 
         # Idxs to delete in the pair list
@@ -580,7 +580,7 @@ class PairDistCalculator:
 
 
 
-    def get_particle_idxs_within_cutoff_distance_to_particle_with_idx(self, idx):
+    def get_particle_idxs_within_cutoff_dist_to_particle_with_idx(self, idx):
         """Get list of indexes of particles that are within the cutoff distance to a given particle.
 
         Parameters

@@ -46,8 +46,8 @@ class TestDifferentSpecies:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         # Check length
         length = len(pdc.idxs_first_particle_of_species_A_within_cutoff)
@@ -57,8 +57,8 @@ class TestDifferentSpecies:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         posn_add = np.random.rand(3)
         idx = 10
@@ -90,8 +90,8 @@ class TestDifferentSpecies:
         self.make_particles()
         self.make_labels()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels_species_A=self.labels_A, labels_species_B=self.labels_B)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist, track_labels=True, labels_species_A=self.labels_A, labels_species_B=self.labels_B)
 
         posn_add = np.random.rand(3)
         label = uuid.uuid4()
@@ -115,8 +115,8 @@ class TestDifferentSpecies:
         self.make_particles()
         self.make_labels()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels_species_A=self.labels_A, labels_species_B=self.labels_B)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist, track_labels=True, labels_species_A=self.labels_A, labels_species_B=self.labels_B)
 
         posn_add = np.random.rand(3)
         idx = 10
@@ -149,8 +149,8 @@ class TestDifferentSpecies:
         self.make_particles()
         self.make_labels()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels_species_A=self.labels_A, labels_species_B=self.labels_B)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist, track_labels=True, labels_species_A=self.labels_A, labels_species_B=self.labels_B)
 
         idx = 13
         label = self.labels_A[idx]
@@ -168,8 +168,8 @@ class TestDifferentSpecies:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         idx = 10
         pdc.remove_particle_of_species_A(idx)
@@ -197,8 +197,8 @@ class TestDifferentSpecies:
 
         self.make_particles()
 
-        cutoff_distance = 0.1
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.1
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         idx = 10
         posn_new = np.random.rand(3)
@@ -224,17 +224,17 @@ class TestDifferentSpecies:
         shape = pdc.dists_squared.shape
         assert shape == (self.n_A*self.n_B,)
 
-    def test_get_idxs_within_cutoff_distance(self):
+    def test_get_idxs_within_cutoff_dist(self):
 
         self.make_particles()
 
-        cutoff_distance = 0.3
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         # Go through all particles
         count_no_pairs_within_cutoff = 0
         for idx in range(0,pdc.n_species_A):
-            idxs_within_cutoff = pdc.get_particle_idxs_of_species_B_within_cutoff_distance_to_particle_of_species_A_with_idx(idx)
+            idxs_within_cutoff = pdc.get_particle_idxs_of_species_B_within_cutoff_dist_to_particle_of_species_A_with_idx(idx)
             count_no_pairs_within_cutoff += len(idxs_within_cutoff)
 
         # These should match
@@ -243,7 +243,7 @@ class TestDifferentSpecies:
         # Go through all particles
         count_no_pairs_within_cutoff = 0
         for idx in range(0,pdc.n_species_B):
-            idxs_within_cutoff = pdc.get_particle_idxs_of_species_A_within_cutoff_distance_to_particle_of_species_B_with_idx(idx)
+            idxs_within_cutoff = pdc.get_particle_idxs_of_species_A_within_cutoff_dist_to_particle_of_species_B_with_idx(idx)
             count_no_pairs_within_cutoff += len(idxs_within_cutoff)
 
         # These should match
@@ -253,8 +253,8 @@ class TestDifferentSpecies:
 
         self.make_particles()
 
-        cutoff_distance = 0.3
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance, calculate_track_centers=True)
+        cutoff_dist = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist, calculate_track_centers=True)
 
         # Shape of centers
         assert pdc.centers.shape == (self.n_A*self.n_B, self.dim)
@@ -309,8 +309,8 @@ class TestDifferentSpecies:
 
         self.make_particles()
 
-        cutoff_distance = 0.3
-        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_distance=cutoff_distance)
+        cutoff_dist = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         # Add particle
         posn_add = np.random.rand(3)
@@ -324,7 +324,7 @@ class TestDifferentSpecies:
             assert True
 
         # Recompute dists
-        pdc.compute_distances()
+        pdc.compute_dists()
 
         # Remove a particle
         idx = 14
@@ -337,7 +337,7 @@ class TestDifferentSpecies:
             assert True
 
         # Recompute dists
-        pdc.compute_distances()
+        pdc.compute_dists()
 
         # Move a particle
         posn_move = np.random.rand(3)
@@ -351,7 +351,7 @@ class TestDifferentSpecies:
             assert True
 
         # Recompute dists
-        pdc.compute_distances()
+        pdc.compute_dists()
 
         # Now all should be OK
         try:

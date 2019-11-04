@@ -36,6 +36,8 @@ A further improvement used in most applications (but not implemented for you her
 
 5. *Different species*: All the same jazz as above, but now the input are two lists of particles, and we are only interested in the cross-species (cross-list) distances between particles. In other words, let the first list be the particles of species `A`, and the second list of species `B`. In this application, we are only interested in the distances between `A-B`, and not `A-A` or `B-B`. If they are of length `nA` and `nB`, this is then `nA*nB` distances, rather than `((nA+nB) choose 2) = (nA+nB) * (nA+nB-1) / 2` distances.
 
+6. *Disable keeping track of pairwise distances*: Keeping track of the pairwise distances can be disabled in the add/remove/move particle methods with the `keep_dists_valid` flag. They can then be recomputed with the `compute_dists` method.
+
 ## Examples
 
 See the [examples](examples) folder.
