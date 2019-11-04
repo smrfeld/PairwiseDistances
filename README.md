@@ -30,7 +30,7 @@ A common problem is to calculate pairwise distances for `n` particles. This occu
 
 A further improvement used in most applications (but not implemented for you here) is to divided space into some partitions (a.k.a. voxels or bins) that are approximately the size of the cutoff distance, such that far interactions are not considered. This code can be used in this regard as well, where each partition would contain the pairwise interactions with particles in the same and neighboring voxels.
 
-3. [TBD] *Labels*: Optional labels can be attached to every particle to keep track of them.
+3. *Labels*: Optional labels can be attached to every particle to keep track of them. Note that accessing particles by labels can be very slow!
 
 4. [TBD] *Centers*: Optional centers `(x_i + x_j)/2` can also be computed for every pair of particles.
 

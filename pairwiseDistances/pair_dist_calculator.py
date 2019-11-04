@@ -412,33 +412,34 @@ class PairDistCalculator:
 
 
 
-    def _get_idx_from_label(self, label):
+    def get_particle_idx_from_label(self, label):
+        """Get the index of a particle from the label.
+
+        Parameters
+        ----------
+        label : ?
+            The label.
+
+        Returns
+        -------
+        idx
+            The index of the particle.
+
+        """
         if not self._track_labels:
             raise ValueError("Attempting to access particle labels, but we are not tracking particle labels! Use idxs instead.")
 
-        idxs = np.arange(0,self._n)[self._labels == label]
+        idxs = np.argwhere(self._labels == label)
         if len(idxs) > 1:
             raise ValueError("More than one particle has the label: " + str(label) + ". This should not be allowed.")
         elif len(idxs) == 0:
             raise ValueError("No particles with the label: " + str(label) + " exist.")
 
-        return idxs[0]
+        return idxs[0][0]
 
 
-    def remove_particle_by_label(self, label):
-        """Remove a particle, performing O(n) calculation to keep pairwise distances correct.
 
-        Parameters
-        ----------
-        label : ?
-            The label of the particle.
-
-        """
-        idx = self._get_idx_from_label(label)
-        self.remove_particle_by_idx(idx)
-
-
-    def remove_particle_by_idx(self, idx):
+    def remove_particle(self, idx):
         """Remove a particle, performing O(n) calculation to keep pairwise distances correct.
 
         Parameters
@@ -495,26 +496,7 @@ class PairDistCalculator:
 
 
 
-    def move_particle_by_label(self, label, new_posn):
-        """Move a particle, performing O(n) calculation to keep pairwise distances correct.
-
-        Parameters
-        ----------
-        label : ?
-            The label of the particle.
-        new_posn : np.array([float])
-            The new position, of length dim.
-
-        """
-
-        # Remove and reinsert
-        idx = self._get_idx_from_label(label)
-        self.remove_particle_by_label(label)
-        self.add_particle(idx, new_posn, label=label, check_labels_unique=False)
-
-
-
-    def move_particle_by_idx(self, idx, new_posn):
+    def move_particle(self, idx, new_posn):
         """Move a particle, performing O(n) calculation to keep pairwise distances correct.
 
         Parameters
@@ -526,43 +508,27 @@ class PairDistCalculator:
 
         """
 
-        # Remove and reinsert
-        self.remove_particle_by_idx(idx)
-        self.add_particle(idx, new_posn, label=None)
+        if self._track_labels:
+            label = self._labels[idx]
 
+            # Remove and reinsert
+            self.remove_particle(idx)
+            self.add_particle(idx, new_posn, label=label, check_labels_unique=False)
 
-
-    def get_particle_idxs_within_cutoff_distance_to_particle_with_label(self, particle_label):
-        """Get list of indexes of particles that are within the cutoff distance to a given particle.
-
-        Parameters
-        ----------
-        particle_label : ?
-            The particle label.
-
-        Returns
-        -------
-        np.array([int])
-            List of particle indexes.
-
-        """
-
-        idxs = self._labels == particle_label
-        if len(idxs) == 0:
-            raise ValueError("Particle label: %s does not exist!" % str(particle_label))
-        elif len(idxs) > 1:
-            raise ValueError("Particle label: %s is not unique!" % str(particle_label))
         else:
-            return self.get_particle_idxs_within_cutoff_distance_to_particle_with_idx(particle_idx=idxs[0])
+
+            # Remove and reinsert
+            self.remove_particle(idx)
+            self.add_particle(idx, new_posn)
 
 
 
-    def get_particle_idxs_within_cutoff_distance_to_particle_with_idx(self, particle_idx):
+    def get_particle_idxs_within_cutoff_distance_to_particle_with_idx(self, idx):
         """Get list of indexes of particles that are within the cutoff distance to a given particle.
 
         Parameters
         ----------
-        particle_idx : int
+        idx : int
             The index of the particle.
 
         Returns
@@ -572,10 +538,8 @@ class PairDistCalculator:
 
         """
 
-        idxs_1 = self._cutoff_dists_idxs_first_particle == particle_idx
-        other_particle_idxs_1 = self._cutoff_dists_idxs_second_particle[idxs_1]
+        other_particle_idxs_1 = self._cutoff_dists_idxs_second_particle[self._cutoff_dists_idxs_first_particle == idx]
 
-        idxs_2 = self._cutoff_dists_idxs_second_particle == particle_idx
-        other_particle_idxs_2 = self._cutoff_dists_idxs_first_particle[idxs_2]
+        other_particle_idxs_2 = self._cutoff_dists_idxs_first_particle[self._cutoff_dists_idxs_second_particle == idx]
 
         return np.append(other_particle_idxs_1,other_particle_idxs_2)

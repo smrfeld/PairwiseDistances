@@ -113,7 +113,21 @@ class Test:
             # Should pass
             assert True
 
-    def test_remove_particle_by_idx(self):
+    def test_get_idx_from_particle_label(self):
+
+        self.make_particles()
+        self.make_labels()
+
+        cutoff_distance = 0.1
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels=self.labels)
+
+        idx = 53
+        label = self.labels[idx]
+        idx_test = pdc.get_particle_idx_from_label(label)
+
+        assert idx == idx_test
+
+    def test_remove_particle(self):
 
         self.make_particles()
 
@@ -123,7 +137,7 @@ class Test:
         original_shape = copy.copy(self.n)
 
         idx = 10
-        pdc.remove_particle_by_idx(idx)
+        pdc.remove_particle(idx)
 
         # Check shape
         # Should be -1
@@ -134,29 +148,7 @@ class Test:
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
 
-    def test_remove_particle_by_label(self):
-
-        self.make_particles()
-        self.make_labels()
-
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels=self.labels)
-
-        original_shape = copy.copy(self.n)
-
-        label = self.labels[10]
-        pdc.remove_particle_by_label(label)
-
-        # Check shape
-        # Should be -1
-        assert pdc.n == original_shape - 1
-
-        # Pairs should be updated too
-        shape = pdc.dists_squared.shape
-        n_choose_2 = pdc.n * (pdc.n-1) / 2
-        assert shape == (n_choose_2,)
-
-    def test_move_particle_by_idx(self):
+    def test_move_particle(self):
 
         self.make_particles()
 
@@ -167,7 +159,7 @@ class Test:
 
         idx = 10
         posn_new = np.random.rand(3)
-        pdc.move_particle_by_idx(idx,posn_new)
+        pdc.move_particle(idx,posn_new)
 
         # Check shape
         # Should be the same!
@@ -177,30 +169,6 @@ class Test:
         shape = pdc.dists_squared.shape
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
-
-    def test_move_particle_by_label(self):
-
-        self.make_particles()
-        self.make_labels()
-
-        cutoff_distance = 0.1
-        pdc = PairDistCalculator(self.posns, self.dim, cutoff_distance=cutoff_distance, track_labels=True, labels=self.labels)
-
-        original_shape = copy.copy(self.n)
-
-        label = self.labels[10]
-        posn_new = np.random.rand(3)
-        pdc.move_particle_by_label(label,posn_new)
-
-        # Check shape
-        # Should be the same!
-        assert pdc.n == original_shape
-
-        # Pairs should be updated too
-        shape = pdc.dists_squared.shape
-        n_choose_2 = pdc.n * (pdc.n-1) / 2
-        assert shape == (n_choose_2,)
-
 
     def test_get_idxs_within_cutoff_distance(self):
 
