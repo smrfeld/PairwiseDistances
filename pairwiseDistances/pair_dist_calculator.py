@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from collections import Counter
 
 class PairDistCalculator:
     """Calculates pairwise distances for a set of particles.
@@ -12,12 +13,14 @@ class PairDistCalculator:
         Dimensionality of each point >= 1. This needs to be specified because you can pass: posns = [].
     cutoff_distance : float
         Optional cutoff distance (the default is None).
+    track_labels : bool
+        Whether to track labels or not (the default is False).
     labels : np.array([?])
-        Optional labels which can in principle be any type (the default is np.array([])).
+        If track_labels: the labels which can in principle be any type which we can search. They must be unique! (the default is np.array([])).
 
     """
 
-    def __init__(self, posns, dim, cutoff_distance=None, labels=np.array([])):
+    def __init__(self, posns, dim, cutoff_distance=None, track_labels=False, labels=np.array([])):
 
         # Setup the logger
         self._logger = logging.getLogger(__name__)
@@ -35,7 +38,20 @@ class PairDistCalculator:
         self._posns = np.copy(posns)
         self._n = len(self._posns)
         self._cutoff_distance = cutoff_distance
-        self._labels = np.copy(labels)
+
+        self._track_labels = track_labels
+        if self._track_labels:
+            # Check length of labels to match positions
+            if len(labels) != len(self._posns):
+                raise ValueError("The length of the specified labels must match the length of the posns array, i.e. one label per particle.")
+
+            # Check duplicates
+            duplicates = [item for item, count in Counter(labels).items() if count > 1]
+            if len(duplicates) != 0:
+                raise ValueError("The labels array contains duplicates. This is not allowed; particle labels must be unique.")
+
+            # Set
+            self._labels = np.copy(labels)
 
         # Initialize all manner of other properties for possible later use
         self._reset()
@@ -94,6 +110,18 @@ class PairDistCalculator:
 
         """
         return self._n
+
+    @property
+    def track_labels(self):
+        """Get the flag whehter we are tracking labels for each particle.
+
+        Returns
+        -------
+        bool
+            Whether we are tracking labels for each particle.
+
+        """
+        return self._track_labels
 
     @property
     def labels(self):
@@ -293,7 +321,7 @@ class PairDistCalculator:
 
 
 
-    def add_particle(self, idx, posn):
+    def add_particle(self, idx, posn, label=None, check_labels_unique=False):
         """Add a particle, performing O(n) calculation to keep pairwise distances correct.
 
         Parameters
@@ -302,9 +330,31 @@ class PairDistCalculator:
             The idx of the particle in the posn list.
         posn : np.array([float])
             The position, of length dim.
+        label : ?
+            Optional label for the new particle (the default is None).
+        check_labels_unique : bool
+            Whether to check if labels are unique (the default is None).
 
         """
 
+        if self._track_labels and label == None:
+            raise ValueError("In add_particle: no label for the new particle was provided, but all the other particles have labels. This is not allowed!")
+
+        # Insert labels
+        if self._track_labels:
+            # Check unique
+            if check_labels_unique:
+                idxs = np.arange(0,self._n)[self._labels == label]
+                if len(idxs) != 0:
+                    raise ValueError("The provided label: " + str(label) + " already exists! Labels must be unique.")
+
+            # Insert
+            self._labels = np.insert(self._labels,idx,label,axis=0)
+            if len(self._labels) == 1 and type(self._labels[0]) != type(label):
+                # Fix type
+                self._labels = self._labels.astype(type(label))
+
+        # Insert position
         self._posns = np.insert(self._posns,idx,posn,axis=0)
         if len(self._posns.shape) == 1:
             self._posns = np.array([self._posns])
@@ -362,7 +412,33 @@ class PairDistCalculator:
 
 
 
-    def remove_particle(self, idx):
+    def _get_idx_from_label(self, label):
+        if not self._track_labels:
+            raise ValueError("Attempting to access particle labels, but we are not tracking particle labels! Use idxs instead.")
+
+        idxs = np.arange(0,self._n)[self._labels == label]
+        if len(idxs) > 1:
+            raise ValueError("More than one particle has the label: " + str(label) + ". This should not be allowed.")
+        elif len(idxs) == 0:
+            raise ValueError("No particles with the label: " + str(label) + " exist.")
+
+        return idxs[0]
+
+
+    def remove_particle_by_label(self, label):
+        """Remove a particle, performing O(n) calculation to keep pairwise distances correct.
+
+        Parameters
+        ----------
+        label : ?
+            The label of the particle.
+
+        """
+        idx = self._get_idx_from_label(label)
+        self.remove_particle_by_idx(idx)
+
+
+    def remove_particle_by_idx(self, idx):
         """Remove a particle, performing O(n) calculation to keep pairwise distances correct.
 
         Parameters
@@ -371,6 +447,10 @@ class PairDistCalculator:
             The idx of the particle in the posn list.
 
         """
+
+        if self._track_labels:
+            # Delete label
+            self._labels = np.delete(self._labels,idx,axis=0)
 
         self._posns = np.delete(self._posns,idx,axis=0)
         self._n -= 1
@@ -415,7 +495,26 @@ class PairDistCalculator:
 
 
 
-    def move_particle(self, idx, new_posn):
+    def move_particle_by_label(self, label, new_posn):
+        """Move a particle, performing O(n) calculation to keep pairwise distances correct.
+
+        Parameters
+        ----------
+        label : ?
+            The label of the particle.
+        new_posn : np.array([float])
+            The new position, of length dim.
+
+        """
+
+        # Remove and reinsert
+        idx = self._get_idx_from_label(label)
+        self.remove_particle_by_label(label)
+        self.add_particle(idx, new_posn, label=label, check_labels_unique=False)
+
+
+
+    def move_particle_by_idx(self, idx, new_posn):
         """Move a particle, performing O(n) calculation to keep pairwise distances correct.
 
         Parameters
@@ -428,8 +527,8 @@ class PairDistCalculator:
         """
 
         # Remove and reinsert
-        self.remove_particle(idx)
-        self.add_particle(idx, new_posn)
+        self.remove_particle_by_idx(idx)
+        self.add_particle(idx, new_posn, label=None)
 
 
 
