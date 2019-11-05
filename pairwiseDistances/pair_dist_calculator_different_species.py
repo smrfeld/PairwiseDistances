@@ -259,6 +259,21 @@ class PairDistCalculatorDifferentSpecies:
         return self._cutoff_dist
 
     @property
+    def cutoff_dists_squared(self):
+        """Get the distances squared between particles of the two different species within the cutoff distance.
+
+        Returns
+        -------
+        np.array([float])
+            The square distances between particles, of length < n_first_species*n_second_species.
+
+        """
+        if self._are_dists_valid:
+            return self._cutoff_dists_squared
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
+
+    @property
     def idxs_first_particle_of_species_A_within_cutoff(self):
         """Get the indexes of the first particle for pairs of particles that are within the cutoff distance. This is always of species A.
 
@@ -303,6 +318,21 @@ class PairDistCalculatorDifferentSpecies:
         else:
             raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
+    @property
+    def cutoff_centers(self):
+        """Get the centers between particles within the cutoff distance, if they were calculated.
+
+        Returns
+        -------
+        np.array([[float]])
+            The centers array of size < (n choose 2) x dim if they are calculated, else empty array.
+
+        """
+        if self._are_dists_valid:
+            return self._cutoff_centers
+        else:
+            raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
+
 
 
     def set_cutoff_dist(self, cutoff_dist, keep_dists_valid=True):
@@ -339,6 +369,8 @@ class PairDistCalculatorDifferentSpecies:
         self._idxs_second_particle_of_species_B = np.array([]).astype(int)
         self._no_pairs = 0
 
+        self._cutoff_dists_squared = np.array([]).astype(float)
+        self._cutoff_centers = np.array([]).astype(float)
         self._idxs_first_particle_of_species_A_within_cutoff = np.array([]).astype(int)
         self._idxs_second_particle_of_species_B_within_cutoff = np.array([]).astype(int)
         self._no_pairs_within_cutoff = 0
@@ -383,10 +415,17 @@ class PairDistCalculatorDifferentSpecies:
             cutoff_dist_squared = pow(self._cutoff_dist,2)
 
             # Eliminate beyond max dist
-            stacked = np.array([self._idxs_first_particle_of_species_A,self._idxs_second_particle_of_species_B,self._dists_squared]).T
-            self._idxs_first_particle_of_species_A_within_cutoff, self._idxs_second_particle_of_species_B_within_cutoff, _ = stacked[stacked[:,2] < cutoff_dist_squared].T
-            self._idxs_first_particle_of_species_A_within_cutoff = self._idxs_first_particle_of_species_A_within_cutoff.astype(int)
-            self._idxs_second_particle_of_species_B_within_cutoff = self._idxs_second_particle_of_species_B_within_cutoff.astype(int)
+            if self._calculate_track_centers:
+                idxs = np.argwhere(self._dists_squared < cutoff_dist_squared)
+                self._idxs_first_particle_of_species_A_within_cutoff = self._idxs_first_particle_of_species_A[idxs]
+                self._idxs_second_particle_of_species_B_within_cutoff = self._idxs_second_particle_of_species_B[idxs]
+                self._cutoff_dists_squared = self._dists_squared[idxs]
+                self._cutoff_centers = self._centers[idxs]
+            else:
+                stacked = np.array([self._idxs_first_particle_of_species_A,self._idxs_second_particle_of_species_B,self._dists_squared]).T
+                self._idxs_first_particle_of_species_A_within_cutoff, self._idxs_second_particle_of_species_B_within_cutoff, self._cutoff_dists_squared = stacked[stacked[:,2] < cutoff_dist_squared].T
+                self._idxs_first_particle_of_species_A_within_cutoff = self._idxs_first_particle_of_species_A_within_cutoff.astype(int)
+                self._idxs_second_particle_of_species_B_within_cutoff = self._idxs_second_particle_of_species_B_within_cutoff.astype(int)
 
         else:
 
@@ -574,8 +613,15 @@ class PairDistCalculatorDifferentSpecies:
             cutoff_dist_squared = pow(self._cutoff_dist,2)
 
             # Filter by max dist
-            stacked = np.array([idxs_add_of_species_A, idxs_add_of_species_B, dists_squared_add]).T
-            idxs_add_of_species_A, idxs_add_of_species_B, dists_squared_add = stacked[stacked[:,2] < cutoff_dist_squared].T
+            if self._calculate_track_centers:
+                idxs = np.argwhere(dists_squared_add < cutoff_dist_squared)
+                idxs_add_of_species_A = idxs_add_of_species_A[idxs]
+                idxs_add_of_species_B = idxs_add_of_species_B[idxs]
+                dists_squared_add = dists_squared_add[idxs]
+                centers_add = centers_add[idxs]
+            else:
+                stacked = np.array([idxs_add_of_species_A, idxs_add_of_species_B, dists_squared_add]).T
+                idxs_add_of_species_A, idxs_add_of_species_B, dists_squared_add = stacked[stacked[:,2] < cutoff_dist_squared].T
 
             # Back to integers
             idxs_add_of_species_A = idxs_add_of_species_A.astype(int)
@@ -584,6 +630,10 @@ class PairDistCalculatorDifferentSpecies:
         # Append
         self._idxs_first_particle_of_species_A_within_cutoff = np.append(self._idxs_first_particle_of_species_A_within_cutoff,idxs_add_of_species_A)
         self._idxs_second_particle_of_species_B_within_cutoff = np.append(self._idxs_second_particle_of_species_B_within_cutoff,idxs_add_of_species_B)
+        self._cutoff_dists_squared = np.append(self._cutoff_dists_squared,dists_squared_add)
+
+        if self._calculate_track_centers:
+            self._cutoff_centers = np.append(self._cutoff_centers,centers_add)
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_of_species_A)
@@ -765,9 +815,13 @@ class PairDistCalculatorDifferentSpecies:
         if self._calculate_track_centers:
             self._centers = np.delete(self._centers, dists_idxs_delete, axis=0)
 
+        self._cutoff_dists_squared = np.delete(self._cutoff_dists_squared, cutoff_dists_idxs_delete)
         self._idxs_first_particle_of_species_A_within_cutoff = np.delete(self._idxs_first_particle_of_species_A_within_cutoff,cutoff_dists_idxs_delete)
         self._idxs_second_particle_of_species_B_within_cutoff = np.delete(self._idxs_second_particle_of_species_B_within_cutoff,cutoff_dists_idxs_delete)
         self._no_pairs_within_cutoff -= len(cutoff_dists_idxs_delete)
+
+        if self._calculate_track_centers:
+            self._cutoff_centers = np.delete(self._cutoff_centers, cutoff_dists_idxs_delete, axis=0)
 
 
 

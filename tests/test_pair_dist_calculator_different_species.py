@@ -53,6 +53,8 @@ class TestDifferentSpecies:
         length = len(pdc.idxs_first_particle_of_species_A_within_cutoff)
         assert length < self.n_A * self.n_B
 
+        assert len(pdc.cutoff_dists_squared) < self.n_A * self.n_B
+
     def test_add_particle(self):
 
         self.make_particles()
@@ -258,6 +260,8 @@ class TestDifferentSpecies:
 
         # Shape of centers
         assert pdc.centers.shape == (self.n_A*self.n_B, self.dim)
+
+        assert len(pdc.cutoff_centers) < self.n_A * self.n_B
 
         # Add particle
         posn_add = np.random.rand(3)
