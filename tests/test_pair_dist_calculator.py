@@ -59,7 +59,7 @@ class Test:
 
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle(idx, posn_add)
+        pdc.add_particle(posn_add, idx=idx)
 
         # Check shape
         # Should be +1
@@ -84,7 +84,7 @@ class Test:
         posn_add = np.random.rand(3)
         label = uuid.uuid4()
         idx = 10
-        pdc.add_particle(idx, posn_add, label=label, check_labels_unique=False)
+        pdc.add_particle(posn_add, idx=idx, label=label, check_labels_unique=False)
 
         # Check shape
         assert len(pdc.labels) == self.n + 1
@@ -103,7 +103,7 @@ class Test:
         label = self.labels[0]
         idx = 10
         try:
-            pdc.add_particle(idx, posn_add, label=label, check_labels_unique=True)
+            pdc.add_particle(posn_add, idx=idx, label=label, check_labels_unique=True)
 
             # Should fail
             assert False
@@ -200,7 +200,7 @@ class Test:
         # Add particle
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle(idx, posn_add)
+        pdc.add_particle(posn_add, idx=idx)
 
         # Shape of centers
         n_choose_2_plus_1 = (self.n+1) * (self.n+1-1) / 2
@@ -233,7 +233,7 @@ class Test:
         # Add particle
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle(idx, posn_add, keep_dists_valid=False)
+        pdc.add_particle(posn_add, idx=idx, keep_dists_valid=False)
 
         try:
             tmp = pdc.dists_squared # this should fail

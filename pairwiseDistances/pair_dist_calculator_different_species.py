@@ -399,15 +399,15 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def add_particle_of_species_A(self, idx, posn, label=None, check_labels_unique=False, keep_dists_valid=True):
+    def add_particle_of_species_A(self, posn, idx=None, label=None, check_labels_unique=False, keep_dists_valid=True):
         """Add a particle of species A, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
-        idx : int
-            The idx of the particle in the posn list.
         posn : np.array([float])
             The position, of length dim.
+        idx : int
+            The idx of the particle in the posn list, else None to add to the back, which is the fastest (0 is the slowest since all other indexes must be altered) (the default is None).
         label : ?
             Optional label for the new particle (the default is None).
         check_labels_unique : bool
@@ -419,6 +419,9 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._track_labels and label == None:
             raise ValueError("In add_particle_of_species_A: no label for the new particle was provided, but all the other particles have labels. This is not allowed!")
+
+        if idx == None:
+            idx = self._n_species_A
 
         # Insert labels
         if self._track_labels:
@@ -471,15 +474,15 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def add_particle_of_species_B(self, idx, posn, label=None, check_labels_unique=False, keep_dists_valid=True):
+    def add_particle_of_species_B(self, posn, idx=None, label=None, check_labels_unique=False, keep_dists_valid=True):
         """Add a particle of species B, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
-        idx : int
-            The idx of the particle in the posn list.
         posn : np.array([float])
             The position, of length dim.
+        idx : int
+            The idx of the particle in the posn list, else None to add to the back, which is the fastest (0 is the slowest since all other indexes must be altered) (the default is None).
         label : ?
             Optional label for the new particle (the default is None).
         check_labels_unique : bool
@@ -491,6 +494,9 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._track_labels and label == None:
             raise ValueError("In add_particle_of_species_B: no label for the new particle was provided, but all the other particles have labels. This is not allowed!")
+
+        if idx == None:
+            idx = self._n_species_B
 
         # Insert labels
         if self._track_labels:
@@ -784,13 +790,13 @@ class PairDistCalculatorDifferentSpecies:
 
             # Remove and reinsert
             self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_A(idx, new_posn, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_A(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
             self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_A(idx, new_posn, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_A(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
 
 
 
@@ -813,13 +819,13 @@ class PairDistCalculatorDifferentSpecies:
 
             # Remove and reinsert
             self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_B(idx, new_posn, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_B(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
             self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_B(idx, new_posn, keep_dists_valid=keep_dists_valid)
+            self.add_particle_of_species_B(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
 
 
 

@@ -349,15 +349,15 @@ class PairDistCalculator:
 
 
 
-    def add_particle(self, idx, posn, label=None, check_labels_unique=False, keep_dists_valid=True):
+    def add_particle(self, posn, idx=None, label=None, check_labels_unique=False, keep_dists_valid=True):
         """Add a particle, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
         Parameters
         ----------
-        idx : int
-            The idx of the particle in the posn list.
         posn : np.array([float])
             The position, of length dim.
+        idx : int
+            The idx of the particle in the posn list, else None to add to the back, which is the fastest (0 is the slowest since all other indexes must be altered) (the default is None).
         label : ?
             Optional label for the new particle (the default is None).
         check_labels_unique : bool
@@ -369,6 +369,10 @@ class PairDistCalculator:
 
         if self._track_labels and label == None:
             raise ValueError("In add_particle: no label for the new particle was provided, but all the other particles have labels. This is not allowed!")
+
+        # Index
+        if idx == None:
+            idx = self._n
 
         # Insert labels
         if self._track_labels:
@@ -582,13 +586,13 @@ class PairDistCalculator:
 
             # Remove and reinsert
             self.remove_particle(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle(idx, new_posn, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
+            self.add_particle(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
             self.remove_particle(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle(idx, new_posn, keep_dists_valid=keep_dists_valid)
+            self.add_particle(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
 
 
 

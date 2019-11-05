@@ -62,7 +62,7 @@ class TestDifferentSpecies:
 
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle_of_species_A(idx, posn_add)
+        pdc.add_particle_of_species_A(posn_add, idx=idx)
 
         # Check shape
         # Should be +1
@@ -74,7 +74,7 @@ class TestDifferentSpecies:
 
         posn_add = np.random.rand(3)
         idx = 15
-        pdc.add_particle_of_species_B(idx, posn_add)
+        pdc.add_particle_of_species_B(posn_add, idx=idx)
 
         # Check shape
         # Should be +1
@@ -96,7 +96,7 @@ class TestDifferentSpecies:
         posn_add = np.random.rand(3)
         label = uuid.uuid4()
         idx = 10
-        pdc.add_particle_of_species_A(idx, posn_add, label=label, check_labels_unique=False)
+        pdc.add_particle_of_species_A(posn_add, idx=idx, label=label, check_labels_unique=False)
 
         # Check shape
         assert len(pdc.labels_species_A) == self.n_A + 1
@@ -104,7 +104,7 @@ class TestDifferentSpecies:
         posn_add = np.random.rand(3)
         label = uuid.uuid4()
         idx = 13
-        pdc.add_particle_of_species_B(idx, posn_add, label=label, check_labels_unique=False)
+        pdc.add_particle_of_species_B(posn_add, idx=idx, label=label, check_labels_unique=False)
 
         # Check shape
         assert len(pdc.labels_species_B) == self.n_B + 1
@@ -122,7 +122,7 @@ class TestDifferentSpecies:
         idx = 10
         try:
             label = self.labels_A[0]
-            pdc.add_particle_of_species_A(idx, posn_add, label=label, check_labels_unique=True)
+            pdc.add_particle_of_species_A(posn_add, idx=idx, label=label, check_labels_unique=True)
 
             # Should fail
             assert False
@@ -134,7 +134,7 @@ class TestDifferentSpecies:
 
         try:
             label = self.labels_B[0]
-            pdc.add_particle_of_species_B(idx, posn_add, label=label, check_labels_unique=True)
+            pdc.add_particle_of_species_B(posn_add, idx=idx, label=label, check_labels_unique=True)
 
             # Should fail
             assert False
@@ -262,7 +262,7 @@ class TestDifferentSpecies:
         # Add particle
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle_of_species_A(idx, posn_add)
+        pdc.add_particle_of_species_A(posn_add, idx=idx)
 
         # Shape of centers
         assert pdc.centers.shape == ((self.n_A+1)*self.n_B, self.dim)
@@ -270,7 +270,7 @@ class TestDifferentSpecies:
         # Add particle
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle_of_species_B(idx, posn_add)
+        pdc.add_particle_of_species_B(posn_add, idx=idx)
 
         # Shape of centers
         assert pdc.centers.shape == ((self.n_A+1)*(self.n_B+1), self.dim)
@@ -315,7 +315,7 @@ class TestDifferentSpecies:
         # Add particle
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle_of_species_A(idx, posn_add, keep_dists_valid=False)
+        pdc.add_particle_of_species_A(posn_add, idx=idx, keep_dists_valid=False)
 
         try:
             tmp = pdc.dists_squared # this should fail
