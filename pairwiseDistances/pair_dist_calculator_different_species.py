@@ -633,7 +633,7 @@ class PairDistCalculatorDifferentSpecies:
         self._cutoff_dists_squared = np.append(self._cutoff_dists_squared,dists_squared_add)
 
         if self._calculate_track_centers:
-            self._cutoff_centers = np.append(self._cutoff_centers,centers_add)
+            self._cutoff_centers = np.append(self._cutoff_centers,centers_add,axis=0)
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_of_species_A)
