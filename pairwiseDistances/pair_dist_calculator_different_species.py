@@ -870,3 +870,95 @@ class PairDistCalculatorDifferentSpecies:
             raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
         return self._idxs_first_particle_of_species_A_within_cutoff[self._idxs_second_particle_of_species_B_within_cutoff == idx]
+
+
+
+    def compute_dists_squared_between_particle_of_species_A_and_existing(self, posn, calculate_centers=False):
+        """Compute the squared distances between a particle of species A at a given position and all other existing particles of species B.
+
+        Parameters
+        ----------
+        posn : np.array([float])
+            The position, of length dim.
+        calculate_centers : bool
+            Whether to also compute the centers (the default is False).
+
+        Returns
+        -------
+        np.array([float])
+            The squared distances between this particle and all the other particles. It is of length n_species_B and in the same order as posns_species_B.
+        np.array([int])
+            The idxs that are within the cutoff distance. It is of length <= n_species_B.
+        np.array([[float]])
+            The centers if compute_centers==True, else empty array. It is of size n_species_B x dim and in the same order as posns_species_B.
+        """
+
+        if self._n_species_B == 0:
+            return [np.array([]), np.array([]), np.array([])]
+
+        # Distances squared
+        dr = self._posns_species_B - posn
+        dists_squared = np.sum(dr*dr, axis=1)
+
+        # Max dist
+        idxs_within_cutoff = np.arange(0,self._n_species_B)
+        if self._cutoff_dist != None:
+            cutoff_dist_squared = pow(self._cutoff_dist,2)
+
+            # Filter by max dist
+            stacked = np.array([idxs_within_cutoff,dists_squared]).T
+            idxs_within_cutoff, _ = stacked[stacked[:,1] < cutoff_dist_squared].T
+            idxs_within_cutoff = idxs_within_cutoff.astype(int)
+
+        # Centers
+        centers = np.array([]).astype(float)
+        if calculate_centers:
+            centers = 0.5 * (self._posns_species_B + posn)
+
+        return [dists_squared, idxs_within_cutoff, centers]
+
+
+
+    def compute_dists_squared_between_particle_of_species_B_and_existing(self, posn, calculate_centers=False):
+        """Compute the squared distances between a particle of species B at a given position and all other existing particles of species A.
+
+        Parameters
+        ----------
+        posn : np.array([float])
+            The position, of length dim.
+        calculate_centers : bool
+            Whether to also compute the centers (the default is False).
+
+        Returns
+        -------
+        np.array([float])
+            The squared distances between this particle and all the other particles. It is of length n_species_A and in the same order as posns_species_A.
+        np.array([int])
+            The idxs that are within the cutoff distance. It is of length <= n_species_A.
+        np.array([[float]])
+            The centers if compute_centers==True, else empty array. It is of size n_species_B x dim and in the same order as posns_species_A.
+        """
+
+        if self._n_species_A == 0:
+            return [np.array([]), np.array([]), np.array([])]
+
+        # Distances squared
+        dr = self._posns_species_A - posn
+        dists_squared = np.sum(dr*dr, axis=1)
+
+        # Max dist
+        idxs_within_cutoff = np.arange(0,self._n_species_A)
+        if self._cutoff_dist != None:
+            cutoff_dist_squared = pow(self._cutoff_dist,2)
+
+            # Filter by max dist
+            stacked = np.array([idxs_within_cutoff,dists_squared]).T
+            idxs_within_cutoff, _ = stacked[stacked[:,1] < cutoff_dist_squared].T
+            idxs_within_cutoff = idxs_within_cutoff.astype(int)
+
+        # Centers
+        centers = np.array([]).astype(float)
+        if calculate_centers:
+            centers = 0.5 * (self._posns_species_A + posn)
+
+        return [dists_squared, idxs_within_cutoff, centers]
