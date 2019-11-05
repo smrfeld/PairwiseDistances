@@ -431,10 +431,16 @@ class PairDistCalculator:
         # Centers
         if self._calculate_track_centers:
             centers_add = 0.5 * (self._posns[idxs_add_1] + self._posns[idxs_add_2])
-            if centers_add.shape == (self._dim,):
-                self._centers = np.append(self._centers, np.array([centers_add]), axis=0)
+            if len(self._centers) == 0:
+                if centers_add.shape == (self._dim,):
+                    self._centers = np.array([centers_add])
+                else:
+                    self._centers = centers_add
             else:
-                self._centers = np.append(self._centers, centers_add, axis=0)
+                if centers_add.shape == (self._dim,):
+                    self._centers = np.append(self._centers, np.array([centers_add]), axis=0)
+                else:
+                    self._centers = np.append(self._centers, centers_add, axis=0)
 
         # Append to the dists
         self._idxs_first_particle = np.append(self._idxs_first_particle,idxs_add_1)
