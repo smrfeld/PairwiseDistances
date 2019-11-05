@@ -621,3 +621,49 @@ class PairDistCalculator:
         other_particle_idxs_2 = self._idxs_first_particle_within_cutoff[self._idxs_second_particle_within_cutoff == idx]
 
         return np.append(other_particle_idxs_1,other_particle_idxs_2)
+
+
+
+    def compute_dists_squared_between_particle_and_existing(self, posn, calculate_centers=False):
+        """Compute the squared distances between a particle at a given position and all other existing particles.
+
+        Parameters
+        ----------
+        posn : np.array([float])
+            The position, of length dim.
+        calculate_centers : bool
+            Whether to also compute the centers (the default is False).
+
+        Returns
+        -------
+        np.array([float])
+            The squared distances between this particle and all the other particles. It is of length n and in the same order as posns.
+        np.array([int])
+            The idxs that are within the cutoff distance. It is of length <= n.
+        np.array([[float]])
+            The centers if compute_centers==True, else empty array. It is of size n x dim and in the same order as posns.
+        """
+
+        if self._n == 0:
+            return [np.array([]), np.array([]), np.array([])]
+
+        # Distances squared
+        dr = self._posns - posn
+        dists_squared = np.sum(dr*dr, axis=1)
+
+        # Max dist
+        idxs_within_cutoff = np.arange(0,self._n)
+        if self._cutoff_dist != None:
+            cutoff_dist_squared = pow(self._cutoff_dist,2)
+
+            # Filter by max dist
+            stacked = np.array([idxs_within_cutoff,dists_squared]).T
+            idxs_within_cutoff, _ = stacked[stacked[:,1] < cutoff_dist_squared].T
+            idxs_within_cutoff = idxs_within_cutoff.astype(int)
+
+        # Centers
+        centers = np.array([]).astype(float)
+        if calculate_centers:
+            centers = 0.5 * (self._posns + posn)
+
+        return [dists_squared, idxs_within_cutoff, centers]

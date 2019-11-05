@@ -288,3 +288,17 @@ class Test:
         pdc.remove_all_particles()
 
         assert pdc.n == 0
+
+    def test_compute_dists_squared_between_particle_and_existing(self):
+
+        self.make_particles()
+
+        cutoff_dist = 0.3
+        pdc = PairDistCalculator(self.posns, self.dim, cutoff_dist=cutoff_dist)
+
+        posn = np.random.rand(3)
+        dists_squared, idxs_within_cutoff, centers = pdc.compute_dists_squared_between_particle_and_existing(posn, calculate_centers=True)
+
+        assert len(dists_squared) == pdc.n
+        assert len(idxs_within_cutoff) <= pdc.n
+        assert centers.shape == (pdc.n, pdc.dim)
