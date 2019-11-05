@@ -883,8 +883,8 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
-    def get_particle_idxs_of_species_B_within_cutoff_dist_to_particle_of_species_A_with_idx(self, idx):
-        """Get list of indexes of particles of species B that are within the cutoff distance to a given particle of species A.
+    def get_particles_of_species_B_within_cutoff_dist_to_particle_of_species_A_with_idx(self, idx):
+        """Get list of particles of species B that are within the cutoff distance to a given particle of species A.
 
         Parameters
         ----------
@@ -895,17 +895,25 @@ class PairDistCalculatorDifferentSpecies:
         -------
         np.array([int])
             List of particle indexes.
+        np.array([float])
+            List of distances squared.
+        np.array([[float]])
+            List of centers if they exist, else empty.
 
         """
 
         if not self._are_dists_valid:
             raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
-        return self._idxs_second_particle_of_species_B_within_cutoff[self._idxs_first_particle_of_species_A_within_cutoff == idx]
+        idxs = self._idxs_first_particle_of_species_A_within_cutoff == idx
+        if self._calculate_track_centers:
+            return [self._idxs_second_particle_of_species_B_within_cutoff[idxs], self._cutoff_dists_squared[idxs], self._cutoff_centers[idxs]]
+        else:
+            return [self._idxs_second_particle_of_species_B_within_cutoff[idxs], self._cutoff_dists_squared[idxs], np.array([])]
 
 
 
-    def get_particle_idxs_of_species_A_within_cutoff_dist_to_particle_of_species_B_with_idx(self, idx):
+    def get_particles_of_species_A_within_cutoff_dist_to_particle_of_species_B_with_idx(self, idx):
         """Get list of indexes of particles of species A that are within the cutoff distance to a given particle of species B.
 
         Parameters
@@ -923,7 +931,11 @@ class PairDistCalculatorDifferentSpecies:
         if not self._are_dists_valid:
             raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
-        return self._idxs_first_particle_of_species_A_within_cutoff[self._idxs_second_particle_of_species_B_within_cutoff == idx]
+        idxs = self._idxs_second_particle_of_species_B_within_cutoff == idx
+        if self._calculate_track_centers:
+            return [self._idxs_first_particle_of_species_A_within_cutoff[idxs], self._cutoff_dists_squared[idxs], self._cutoff_centers[idxs]]
+        else:
+            return [self._idxs_first_particle_of_species_A_within_cutoff[idxs], self._cutoff_dists_squared[idxs], np.array([])]
 
 
 

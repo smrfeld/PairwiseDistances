@@ -236,7 +236,7 @@ class TestDifferentSpecies:
         # Go through all particles
         count_no_pairs_within_cutoff = 0
         for idx in range(0,pdc.n_species_A):
-            idxs_within_cutoff = pdc.get_particle_idxs_of_species_B_within_cutoff_dist_to_particle_of_species_A_with_idx(idx)
+            idxs_within_cutoff, dists_squared, centers = pdc.get_particles_of_species_B_within_cutoff_dist_to_particle_of_species_A_with_idx(idx)
             count_no_pairs_within_cutoff += len(idxs_within_cutoff)
 
         # These should match
@@ -245,7 +245,7 @@ class TestDifferentSpecies:
         # Go through all particles
         count_no_pairs_within_cutoff = 0
         for idx in range(0,pdc.n_species_B):
-            idxs_within_cutoff = pdc.get_particle_idxs_of_species_A_within_cutoff_dist_to_particle_of_species_B_with_idx(idx)
+            idxs_within_cutoff, dists_squared, centers = pdc.get_particles_of_species_A_within_cutoff_dist_to_particle_of_species_B_with_idx(idx)
             count_no_pairs_within_cutoff += len(idxs_within_cutoff)
 
         # These should match

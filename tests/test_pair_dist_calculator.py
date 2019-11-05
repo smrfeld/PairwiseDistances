@@ -173,7 +173,7 @@ class Test:
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
 
-    def test_get_idxs_within_cutoff_dist(self):
+    def test_get_particles_within_cutoff_dist(self):
 
         self.make_particles()
 
@@ -183,7 +183,7 @@ class Test:
         # Go through all particles
         count_no_pairs_within_cutoff = 0
         for idx in range(0,pdc.n):
-            idxs_within_cutoff = pdc.get_particle_idxs_within_cutoff_dist_to_particle_with_idx(idx)
+            idxs_within_cutoff, dists_squared, centers = pdc.get_particles_within_cutoff_dist_to_particle_with_idx(idx)
             count_no_pairs_within_cutoff += len(idxs_within_cutoff)
 
         # These should match, although we double counted => factor 2

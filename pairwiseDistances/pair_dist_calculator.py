@@ -657,7 +657,7 @@ class PairDistCalculator:
 
 
 
-    def get_particle_idxs_within_cutoff_dist_to_particle_with_idx(self, idx):
+    def get_particles_within_cutoff_dist_to_particle_with_idx(self, idx):
         """Get list of indexes of particles that are within the cutoff distance to a given particle.
 
         Parameters
@@ -669,17 +669,27 @@ class PairDistCalculator:
         -------
         np.array([int])
             List of particle indexes.
-
+        np.array([float])
+            List of distances squared.
+        np.array([[float]])
+            List of centers if they exist, else empty.
         """
 
         if not self._are_dists_valid:
             raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
-        other_particle_idxs_1 = self._idxs_second_particle_within_cutoff[self._idxs_first_particle_within_cutoff == idx]
+        idxs_1 = np.argwhere(self._idxs_first_particle_within_cutoff == idx)
+        other_particle_idxs_1 = self._idxs_second_particle_within_cutoff[idxs_1]
+        idxs_2 = np.argwhere(self._idxs_second_particle_within_cutoff == idx)
+        other_particle_idxs_2 = self._idxs_first_particle_within_cutoff[idxs_2]
+        other_particle_idxs = np.append(other_particle_idxs_1,other_particle_idxs_2)
 
-        other_particle_idxs_2 = self._idxs_first_particle_within_cutoff[self._idxs_second_particle_within_cutoff == idx]
+        idxs = np.append(idxs_1,idxs_2)
 
-        return np.append(other_particle_idxs_1,other_particle_idxs_2)
+        if self._calculate_track_centers:
+            return [other_particle_idxs, self._cutoff_dists_squared[idxs], self._centers[idxs]]
+        else:
+            return [other_particle_idxs, self._cutoff_dists_squared[idxs], np.array([])]
 
 
 
