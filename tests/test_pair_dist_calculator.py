@@ -48,6 +48,9 @@ class Test:
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert length < n_choose_2
 
+        # Check dim
+        assert len(pdc.cutoff_dists_squared) < n_choose_2
+
     def test_add_particle(self):
 
         self.make_particles()
@@ -196,6 +199,7 @@ class Test:
         # Shape of centers
         n_choose_2 = self.n * (self.n-1) / 2
         assert pdc.centers.shape == (n_choose_2, self.dim)
+        assert len(pdc.cutoff_centers) < n_choose_2
 
         # Add particle
         posn_add = np.random.rand(3)
