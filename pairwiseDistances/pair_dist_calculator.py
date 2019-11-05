@@ -383,6 +383,8 @@ class PairDistCalculator:
                     raise ValueError("The provided label: " + str(label) + " already exists! Labels must be unique.")
 
             # Insert
+            if len(self._labels) == 0:
+                self._labels = np.array([]).astype(type(label))
             self._labels = np.insert(self._labels,idx,label,axis=0)
             if len(self._labels) == 1 and type(self._labels[0]) != type(label):
                 # Fix type
