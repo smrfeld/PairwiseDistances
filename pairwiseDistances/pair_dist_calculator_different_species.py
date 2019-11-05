@@ -597,10 +597,16 @@ class PairDistCalculatorDifferentSpecies:
         # Centers
         if self._calculate_track_centers:
             centers_add = 0.5 * (self._posns_species_A[idxs_add_of_species_A] + self._posns_species_B[idxs_add_of_species_B])
-            if centers_add.shape == (self._dim,):
-                self._centers = np.append(self._centers, np.array([centers_add]), axis=0)
+            if len(self._centers) == 0:
+                if centers_add.shape == (self._dim,):
+                    self._centers = np.array([centers_add])
+                else:
+                    self._centers = centers_add
             else:
-                self._centers = np.append(self._centers, centers_add, axis=0)
+                if centers_add.shape == (self._dim,):
+                    self._centers = np.append(self._centers, np.array([centers_add]), axis=0)
+                else:
+                    self._centers = np.append(self._centers, centers_add, axis=0)
 
         # Append to the dists
         self._idxs_first_particle_of_species_A = np.append(self._idxs_first_particle_of_species_A, idxs_add_of_species_A)
@@ -633,7 +639,16 @@ class PairDistCalculatorDifferentSpecies:
         self._cutoff_dists_squared = np.append(self._cutoff_dists_squared,dists_squared_add)
 
         if self._calculate_track_centers:
-            self._cutoff_centers = np.append(self._cutoff_centers,centers_add,axis=0)
+            if len(self._cutoff_centers) == 0:
+                if centers_add.shape == (self._dim,):
+                    self._cutoff_centers = np.array([centers_add])
+                else:
+                    self._cutoff_centers = centers_add
+            else:
+                if centers_add.shape == (self._dim,):
+                    self._cutoff_centers = np.append(self._cutoff_centers, np.array([centers_add]), axis=0)
+                else:
+                    self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_of_species_A)

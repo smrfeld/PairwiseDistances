@@ -511,7 +511,16 @@ class PairDistCalculator:
         self._idxs_first_particle_within_cutoff = np.append(self._idxs_first_particle_within_cutoff,idxs_add_1)
         self._idxs_second_particle_within_cutoff = np.append(self._idxs_second_particle_within_cutoff,idxs_add_2)
         if self._calculate_track_centers:
-            self._cutoff_centers = np.append(self._cutoff_centers,centers_add, axis=0)
+            if len(self._cutoff_centers) == 0:
+                if centers_add.shape == (self._dim,):
+                    self._cutoff_centers = np.array([centers_add])
+                else:
+                    self._cutoff_centers = centers_add
+            else:
+                if centers_add.shape == (self._dim,):
+                    self._cutoff_centers = np.append(self._cutoff_centers, np.array([centers_add]), axis=0)
+                else:
+                    self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_1)
