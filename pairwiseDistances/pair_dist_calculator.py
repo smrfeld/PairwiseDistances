@@ -544,7 +544,7 @@ class PairDistCalculator:
         elif len(idxs) == 0:
             raise ValueError("No particles with the label: " + str(label) + " exist.")
 
-        return idxs[0][0]
+        return idxs[0]
 
 
 

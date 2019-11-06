@@ -674,7 +674,7 @@ class PairDistCalculatorDifferentSpecies:
         elif len(idxs) == 0:
             raise ValueError("No particles of species A with the label: " + str(label) + " exist.")
 
-        return idxs[0][0]
+        return idxs[0]
 
 
 
@@ -701,7 +701,7 @@ class PairDistCalculatorDifferentSpecies:
         elif len(idxs) == 0:
             raise ValueError("No particles of species B with the label: " + str(label) + " exist.")
 
-        return idxs[0][0]
+        return idxs[0]
 
 
     def remove_all_particles(self):
