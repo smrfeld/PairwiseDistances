@@ -366,7 +366,7 @@ class PairDistCalculator:
 
             # Eliminate beyond max dist
             if self._calculate_track_centers:
-                idxs = np.argwhere(self._dists_squared < cutoff_dist_squared)
+                idxs = np.argwhere(self._dists_squared < cutoff_dist_squared).flatten()
                 self._idxs_first_particle_within_cutoff = self._idxs_first_particle[idxs]
                 self._idxs_second_particle_within_cutoff = self._idxs_second_particle[idxs]
                 self._cutoff_dists_squared = self._dists_squared[idxs]
@@ -417,7 +417,7 @@ class PairDistCalculator:
         if self._track_labels:
             # Check unique
             if check_labels_unique:
-                idxs = np.argwhere(self._labels == label)
+                idxs = np.argwhere(self._labels == label).flatten()
                 if len(idxs) != 0:
                     raise ValueError("The provided label: " + str(label) + " already exists! Labels must be unique.")
 
@@ -470,16 +470,13 @@ class PairDistCalculator:
         # Centers
         if self._calculate_track_centers:
             centers_add = 0.5 * (self._posns[idxs_add_1] + self._posns[idxs_add_2])
+            if centers_add.shape == (self._dim,):
+                centers_add = np.array([centers_add])
+
             if len(self._centers) == 0:
-                if centers_add.shape == (self._dim,):
-                    self._centers = np.array([centers_add])
-                else:
-                    self._centers = centers_add
+                self._centers = centers_add
             else:
-                if centers_add.shape == (self._dim,):
-                    self._centers = np.append(self._centers, np.array([centers_add]), axis=0)
-                else:
-                    self._centers = np.append(self._centers, centers_add, axis=0)
+                self._centers = np.append(self._centers, centers_add, axis=0)
 
         # Append to the dists
         self._idxs_first_particle = np.append(self._idxs_first_particle,idxs_add_1)
@@ -493,7 +490,7 @@ class PairDistCalculator:
 
             # Filter by max dist
             if self._calculate_track_centers:
-                idxs = np.argwhere(dists_squared_add < cutoff_dist_squared)
+                idxs = np.argwhere(dists_squared_add < cutoff_dist_squared).flatten()
                 idxs_add_1 = idxs_add_1[idxs]
                 idxs_add_2 = idxs_add_2[idxs]
                 dists_squared_add = dists_squared_add[idxs]
@@ -511,16 +508,13 @@ class PairDistCalculator:
         self._idxs_first_particle_within_cutoff = np.append(self._idxs_first_particle_within_cutoff,idxs_add_1)
         self._idxs_second_particle_within_cutoff = np.append(self._idxs_second_particle_within_cutoff,idxs_add_2)
         if self._calculate_track_centers:
+            if centers_add.shape == (self._dim,):
+                centers_add = np.array([centers_add])
+
             if len(self._cutoff_centers) == 0:
-                if centers_add.shape == (self._dim,):
-                    self._cutoff_centers = np.array([centers_add])
-                else:
                     self._cutoff_centers = centers_add
             else:
-                if centers_add.shape == (self._dim,):
-                    self._cutoff_centers = np.append(self._cutoff_centers, np.array([centers_add]), axis=0)
-                else:
-                    self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
+                self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_1)
@@ -544,7 +538,7 @@ class PairDistCalculator:
         if not self._track_labels:
             raise ValueError("Attempting to access particle labels, but we are not tracking particle labels! Use idxs instead.")
 
-        idxs = np.argwhere(self._labels == label)
+        idxs = np.argwhere(self._labels == label).flatten()
         if len(idxs) > 1:
             raise ValueError("More than one particle has the label: " + str(label) + ". This should not be allowed.")
         elif len(idxs) == 0:
@@ -625,14 +619,14 @@ class PairDistCalculator:
             self._cutoff_centers = np.delete(self._cutoff_centers, cutoff_dists_idxs_delete, axis=0)
 
         # Shift the idxs such that they again include idx
-        shift_1 = np.argwhere(self._idxs_first_particle > idx)
+        shift_1 = np.argwhere(self._idxs_first_particle > idx).flatten()
         self._idxs_first_particle[shift_1] -= 1
-        shift_2 = np.argwhere(self._idxs_second_particle > idx)
+        shift_2 = np.argwhere(self._idxs_second_particle > idx).flatten()
         self._idxs_second_particle[shift_2] -= 1
 
-        shift_1 = np.argwhere(self._idxs_first_particle_within_cutoff > idx)
+        shift_1 = np.argwhere(self._idxs_first_particle_within_cutoff > idx).flatten()
         self._idxs_first_particle_within_cutoff[shift_1] -= 1
-        shift_2 = np.argwhere(self._idxs_second_particle_within_cutoff > idx)
+        shift_2 = np.argwhere(self._idxs_second_particle_within_cutoff > idx).flatten()
         self._idxs_second_particle_within_cutoff[shift_2] -= 1
 
 
@@ -687,9 +681,9 @@ class PairDistCalculator:
         if not self._are_dists_valid:
             raise ValueError("Pairwise distances are currently invalid. Run compute_dists first.")
 
-        idxs_1 = np.argwhere(self._idxs_first_particle_within_cutoff == idx)
+        idxs_1 = np.argwhere(self._idxs_first_particle_within_cutoff == idx).flatten()
         other_particle_idxs_1 = self._idxs_second_particle_within_cutoff[idxs_1]
-        idxs_2 = np.argwhere(self._idxs_second_particle_within_cutoff == idx)
+        idxs_2 = np.argwhere(self._idxs_second_particle_within_cutoff == idx).flatten()
         other_particle_idxs_2 = self._idxs_first_particle_within_cutoff[idxs_2]
         other_particle_idxs = np.append(other_particle_idxs_1,other_particle_idxs_2)
 

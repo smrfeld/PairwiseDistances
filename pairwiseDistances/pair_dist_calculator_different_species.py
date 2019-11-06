@@ -416,7 +416,7 @@ class PairDistCalculatorDifferentSpecies:
 
             # Eliminate beyond max dist
             if self._calculate_track_centers:
-                idxs = np.argwhere(self._dists_squared < cutoff_dist_squared)
+                idxs = np.argwhere(self._dists_squared < cutoff_dist_squared).flatten()
                 self._idxs_first_particle_of_species_A_within_cutoff = self._idxs_first_particle_of_species_A[idxs]
                 self._idxs_second_particle_of_species_B_within_cutoff = self._idxs_second_particle_of_species_B[idxs]
                 self._cutoff_dists_squared = self._dists_squared[idxs]
@@ -466,7 +466,7 @@ class PairDistCalculatorDifferentSpecies:
         if self._track_labels:
             # Check unique
             if check_labels_unique:
-                idxs = np.argwhere(self._labels_species_A == label)
+                idxs = np.argwhere(self._labels_species_A == label).flatten()
                 if len(idxs) != 0:
                     raise ValueError("The provided label: " + str(label) + " of species A already exists! Labels must be unique.")
 
@@ -482,7 +482,8 @@ class PairDistCalculatorDifferentSpecies:
             self._posns_species_A = np.array([self._posns_species_A])
         self._n_species_A += 1
 
-        if self._n_species_A == 1:
+        if self._n_species_B == 0: # No other particles
+            self._are_dists_valid = True
             return # Finished
 
         # If we are not keeping pairwise dists valid, we are done
@@ -541,7 +542,7 @@ class PairDistCalculatorDifferentSpecies:
         if self._track_labels:
             # Check unique
             if check_labels_unique:
-                idxs = np.argwhere(self._labels_species_B == label)
+                idxs = np.argwhere(self._labels_species_B == label).flatten()
                 if len(idxs) != 0:
                     raise ValueError("The provided label: " + str(label) + " of species B already exists! Labels must be unique.")
 
@@ -557,7 +558,8 @@ class PairDistCalculatorDifferentSpecies:
             self._posns_species_B = np.array([self._posns_species_B])
         self._n_species_B += 1
 
-        if self._n_species_B == 1:
+        if self._n_species_A == 0: # No other particles
+            self._are_dists_valid = True
             return # Finished
 
         # If we are not keeping pairwise dists valid, we are done
@@ -597,16 +599,13 @@ class PairDistCalculatorDifferentSpecies:
         # Centers
         if self._calculate_track_centers:
             centers_add = 0.5 * (self._posns_species_A[idxs_add_of_species_A] + self._posns_species_B[idxs_add_of_species_B])
+            if centers_add.shape == (self._dim,):
+                centers_add = np.array([centers_add])
+
             if len(self._centers) == 0:
-                if centers_add.shape == (self._dim,):
-                    self._centers = np.array([centers_add])
-                else:
-                    self._centers = centers_add
+                self._centers = centers_add
             else:
-                if centers_add.shape == (self._dim,):
-                    self._centers = np.append(self._centers, np.array([centers_add]), axis=0)
-                else:
-                    self._centers = np.append(self._centers, centers_add, axis=0)
+                self._centers = np.append(self._centers, centers_add, axis=0)
 
         # Append to the dists
         self._idxs_first_particle_of_species_A = np.append(self._idxs_first_particle_of_species_A, idxs_add_of_species_A)
@@ -620,7 +619,7 @@ class PairDistCalculatorDifferentSpecies:
 
             # Filter by max dist
             if self._calculate_track_centers:
-                idxs = np.argwhere(dists_squared_add < cutoff_dist_squared)
+                idxs = np.argwhere(dists_squared_add < cutoff_dist_squared).flatten()
                 idxs_add_of_species_A = idxs_add_of_species_A[idxs]
                 idxs_add_of_species_B = idxs_add_of_species_B[idxs]
                 dists_squared_add = dists_squared_add[idxs]
@@ -639,16 +638,13 @@ class PairDistCalculatorDifferentSpecies:
         self._cutoff_dists_squared = np.append(self._cutoff_dists_squared,dists_squared_add)
 
         if self._calculate_track_centers:
+            if centers_add.shape == (self._dim,):
+                centers_add = np.array([centers_add])
+
             if len(self._cutoff_centers) == 0:
-                if centers_add.shape == (self._dim,):
-                    self._cutoff_centers = np.array([centers_add])
-                else:
-                    self._cutoff_centers = centers_add
+                self._cutoff_centers = centers_add
             else:
-                if centers_add.shape == (self._dim,):
-                    self._cutoff_centers = np.append(self._cutoff_centers, np.array([centers_add]), axis=0)
-                else:
-                    self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
+                self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_of_species_A)
@@ -672,7 +668,7 @@ class PairDistCalculatorDifferentSpecies:
         if not self._track_labels:
             raise ValueError("Attempting to access particle labels, but we are not tracking particle labels! Use idxs instead.")
 
-        idxs = np.argwhere(self._labels_species_A == label)
+        idxs = np.argwhere(self._labels_species_A == label).flatten()
         if len(idxs) > 1:
             raise ValueError("More than one particle of species A has the label: " + str(label) + ". This should not be allowed.")
         elif len(idxs) == 0:
@@ -699,7 +695,7 @@ class PairDistCalculatorDifferentSpecies:
         if not self._track_labels:
             raise ValueError("Attempting to access particle labels, but we are not tracking particle labels! Use idxs instead.")
 
-        idxs = np.argwhere(self._labels_species_B == label)
+        idxs = np.argwhere(self._labels_species_B == label).flatten()
         if len(idxs) > 1:
             raise ValueError("More than one particle of species B has the label: " + str(label) + ". This should not be allowed.")
         elif len(idxs) == 0:
@@ -743,6 +739,9 @@ class PairDistCalculatorDifferentSpecies:
         self._n_species_A -= 1
 
         if self._n_species_A == 0:
+            # Reset
+            self._reset()
+            self._are_dists_valid = True
             return # Finished
 
         # If we are not keeping pairwise distances valid, we are done
@@ -791,6 +790,9 @@ class PairDistCalculatorDifferentSpecies:
         self._n_species_B -= 1
 
         if self._n_species_B == 0:
+            # Reset
+            self._reset()
+            self._are_dists_valid = True
             return # Finished
 
         # If we are not keeping pairwise distances valid, we are done
