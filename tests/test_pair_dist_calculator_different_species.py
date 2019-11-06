@@ -64,7 +64,7 @@ class TestDifferentSpecies:
 
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle_of_species_A(posn_add, idx=idx)
+        idxs_inserted, cutoff_idxs_inserted = pdc.add_particle_of_species_A(posn_add, idx=idx)
 
         # Check shape
         # Should be +1
@@ -74,9 +74,13 @@ class TestDifferentSpecies:
         shape = pdc.dists_squared.shape
         assert shape == ((self.n_A+1)*self.n_B,)
 
+        # Idxs
+        assert len(idxs_inserted) == pdc.n_species_B
+        assert len(cutoff_idxs_inserted) <= pdc.n_species_B
+
         posn_add = np.random.rand(3)
         idx = 15
-        pdc.add_particle_of_species_B(posn_add, idx=idx)
+        idxs_inserted, cutoff_idxs_inserted = pdc.add_particle_of_species_B(posn_add, idx=idx)
 
         # Check shape
         # Should be +1
@@ -85,6 +89,10 @@ class TestDifferentSpecies:
         # Pairs should be updated too
         shape = pdc.dists_squared.shape
         assert shape == ((self.n_A+1)*(self.n_B+1),)
+
+        # Idxs
+        assert len(idxs_inserted) == pdc.n_species_A
+        assert len(cutoff_idxs_inserted) <= pdc.n_species_A
 
 
     def test_add_particle_with_label(self):
@@ -174,7 +182,7 @@ class TestDifferentSpecies:
         pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
 
         idx = 10
-        pdc.remove_particle_of_species_A(idx)
+        idxs_deleted, cutoff_idxs_deleted = pdc.remove_particle_of_species_A(idx)
 
         # Check shape
         # Should be -1
@@ -184,8 +192,11 @@ class TestDifferentSpecies:
         shape = pdc.dists_squared.shape
         assert shape == ((self.n_A-1)*self.n_B,)
 
+        assert len(idxs_deleted) == pdc.n_species_B
+        assert len(cutoff_idxs_deleted) <= pdc.n_species_B
+
         idx = 8
-        pdc.remove_particle_of_species_B(idx)
+        idxs_deleted, cutoff_idxs_deleted = pdc.remove_particle_of_species_B(idx)
 
         # Check shape
         # Should be -1
@@ -194,6 +205,9 @@ class TestDifferentSpecies:
         # Pairs should be updated too
         shape = pdc.dists_squared.shape
         assert shape == ((self.n_A-1)*(self.n_B-1),)
+
+        assert len(idxs_deleted) == pdc.n_species_A
+        assert len(cutoff_idxs_deleted) <= pdc.n_species_A
 
     def test_move_particle(self):
 
@@ -204,7 +218,7 @@ class TestDifferentSpecies:
 
         idx = 10
         posn_new = np.random.rand(3)
-        pdc.move_particle_of_species_A(idx,posn_new)
+        idxs_deleted, idxs_inserted, cutoff_idxs_deleted, cutoff_idxs_inserted = pdc.move_particle_of_species_A(idx,posn_new)
 
         # Check shape
         # Should be the same!
@@ -214,9 +228,16 @@ class TestDifferentSpecies:
         shape = pdc.dists_squared.shape
         assert shape == (self.n_A*self.n_B,)
 
+        # Idxs
+        assert len(idxs_deleted) == pdc.n_species_B
+        assert len(idxs_inserted) == pdc.n_species_B
+        assert len(idxs_deleted) == len(idxs_inserted)
+        assert len(cutoff_idxs_deleted) <= pdc.n_species_B
+        assert len(cutoff_idxs_inserted) <= pdc.n_species_B
+
         idx = 8
         posn_new = np.random.rand(3)
-        pdc.move_particle_of_species_A(idx,posn_new)
+        idxs_deleted, idxs_inserted, cutoff_idxs_deleted, cutoff_idxs_inserted = pdc.move_particle_of_species_B(idx,posn_new)
 
         # Check shape
         # Should be the same!
@@ -225,6 +246,13 @@ class TestDifferentSpecies:
         # Pairs should be updated too
         shape = pdc.dists_squared.shape
         assert shape == (self.n_A*self.n_B,)
+
+        # Idxs
+        assert len(idxs_deleted) == pdc.n_species_A
+        assert len(idxs_inserted) == pdc.n_species_A
+        assert len(idxs_deleted) == len(idxs_inserted)
+        assert len(cutoff_idxs_deleted) <= pdc.n_species_A
+        assert len(cutoff_idxs_inserted) <= pdc.n_species_A
 
     def test_get_idxs_within_cutoff_dist(self):
 

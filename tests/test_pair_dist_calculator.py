@@ -62,7 +62,7 @@ class Test:
 
         posn_add = np.random.rand(3)
         idx = 10
-        pdc.add_particle(posn_add, idx=idx)
+        idxs_inserted, cutoff_idxs_inserted = pdc.add_particle(posn_add, idx=idx)
 
         # Check shape
         # Should be +1
@@ -72,6 +72,10 @@ class Test:
         shape = pdc.dists_squared.shape
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
+
+        # Check shape inserted
+        assert len(idxs_inserted) == pdc.n-1
+        assert len(cutoff_idxs_inserted) <= pdc.n-1
 
 
     def test_add_particle_with_label(self):
@@ -140,7 +144,7 @@ class Test:
         original_shape = copy.copy(self.n)
 
         idx = 10
-        pdc.remove_particle(idx)
+        idxs_deleted, cutoff_idxs_deleted = pdc.remove_particle(idx)
 
         # Check shape
         # Should be -1
@@ -150,6 +154,10 @@ class Test:
         shape = pdc.dists_squared.shape
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
+
+        # Idxs delete
+        assert len(idxs_deleted) == pdc.n
+        assert len(cutoff_idxs_deleted) <= pdc.n
 
     def test_move_particle(self):
 
@@ -162,7 +170,7 @@ class Test:
 
         idx = 10
         posn_new = np.random.rand(3)
-        pdc.move_particle(idx,posn_new)
+        idxs_deleted, idxs_inserted, cutoff_idxs_deleted, cutoff_idxs_inserted = pdc.move_particle(idx,posn_new)
 
         # Check shape
         # Should be the same!
@@ -172,6 +180,13 @@ class Test:
         shape = pdc.dists_squared.shape
         n_choose_2 = pdc.n * (pdc.n-1) / 2
         assert shape == (n_choose_2,)
+
+        # Lengths
+        assert len(idxs_deleted) == pdc.n-1
+        assert len(idxs_inserted) == pdc.n-1
+        assert len(idxs_deleted) == len(idxs_inserted)
+        assert len(cutoff_idxs_deleted) <= pdc.n-1
+        assert len(cutoff_idxs_inserted) <= pdc.n-1
 
     def test_get_particles_within_cutoff_dist(self):
 

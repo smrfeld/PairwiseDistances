@@ -454,6 +454,13 @@ class PairDistCalculatorDifferentSpecies:
         keep_dists_valid : bool
             Whether to keep pairwise dists valid, comprising an O(n) calculation (the default is None).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of new elements in dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers.
+        np.array([int])
+            Idxs of new elements in cutoff_dists_squared / idxs_first_particle_of_species_A_within_cutoff / idxs_second_particle_of_species_B_within_cutoff / cutoff_centers.
+
         """
 
         if self._track_labels and label == None:
@@ -484,17 +491,17 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._n_species_B == 0: # No other particles
             self._are_dists_valid = True
-            return # Finished
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If we are not keeping pairwise dists valid, we are done
         if not keep_dists_valid:
             self._are_dists_valid = False
-            return
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If the dists are not valid to begin, need to recompute
         if not self._are_dists_valid:
             self.compute_dists()
-            return
+            return [ np.arange(0,self._no_pairs), np.arange(0,self._no_pairs_within_cutoff) ]
 
         # Shift idxs such that they do not refer to idx
         shift_1 = np.argwhere(self._idxs_first_particle_of_species_A >= idx).flatten()
@@ -510,7 +517,7 @@ class PairDistCalculatorDifferentSpecies:
         idxs_add_of_species_B = np.arange(0,self._n_species_B)
 
         # Add a particle
-        self._add_particle(idxs_add_of_species_A, idxs_add_of_species_B)
+        return self._add_particle(idxs_add_of_species_A, idxs_add_of_species_B)
 
 
 
@@ -529,6 +536,13 @@ class PairDistCalculatorDifferentSpecies:
             Whether to check if labels are unique (the default is None).
         keep_dists_valid : bool
             Whether to keep pairwise dists valid, comprising an O(n) calculation (the default is None).
+
+        Returns
+        -------
+        np.array([int])
+            Idxs of new elements in dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers.
+        np.array([int])
+            Idxs of new elements in cutoff_dists_squared / idxs_first_particle_of_species_A_within_cutoff / idxs_second_particle_of_species_B_within_cutoff / cutoff_centers.
 
         """
 
@@ -560,17 +574,17 @@ class PairDistCalculatorDifferentSpecies:
 
         if self._n_species_A == 0: # No other particles
             self._are_dists_valid = True
-            return # Finished
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If we are not keeping pairwise dists valid, we are done
         if not keep_dists_valid:
             self._are_dists_valid = False
-            return
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If the dists are not valid to begin, need to recompute
         if not self._are_dists_valid:
             self.compute_dists()
-            return
+            return [ np.arange(0,self._no_pairs), np.arange(0,self._no_pairs_within_cutoff) ]
 
         # Shift idxs such that they do not refer to idx
         shift_1 = np.argwhere(self._idxs_second_particle_of_species_B >= idx).flatten()
@@ -586,7 +600,7 @@ class PairDistCalculatorDifferentSpecies:
         idxs_add_of_species_A = np.arange(0,self._n_species_A)
 
         # Add a particle
-        self._add_particle(idxs_add_of_species_A, idxs_add_of_species_B)
+        return self._add_particle(idxs_add_of_species_A, idxs_add_of_species_B)
 
 
 
@@ -612,6 +626,9 @@ class PairDistCalculatorDifferentSpecies:
         self._idxs_second_particle_of_species_B = np.append(self._idxs_second_particle_of_species_B, idxs_add_of_species_B)
         self._dists_squared = np.append(self._dists_squared,dists_squared_add)
         self._no_pairs += len(dists_squared_add)
+
+        # Which idxs were added to dists_squared
+        idxs_inserted = np.arange(self._no_pairs-len(dists_squared_add),self._no_pairs)
 
         # Max dist
         if self._cutoff_dist != None:
@@ -648,6 +665,11 @@ class PairDistCalculatorDifferentSpecies:
 
         # Number of pairs now
         self._no_pairs_within_cutoff += len(idxs_add_of_species_A)
+
+        # Which idxs were added to cutoff_dists_squared
+        cutoff_idxs_inserted = np.arange(self._no_pairs_within_cutoff-len(dists_squared_add),self._no_pairs_within_cutoff)
+
+        return [idxs_inserted, cutoff_idxs_inserted]
 
 
 
@@ -729,6 +751,13 @@ class PairDistCalculatorDifferentSpecies:
         keep_dists_valid : bool
             Whether the keep the pairwise distances valid (the default is True).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of elements deleted from dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers.
+        np.array([int])
+            Idxs of elements deleted from cutoff_dists_squared / idxs_first_particle_of_species_A_within_cutoff / idxs_second_particle_of_species_B_within_cutoff / cutoff_centers.
+
         """
 
         if self._track_labels:
@@ -742,17 +771,17 @@ class PairDistCalculatorDifferentSpecies:
             # Reset
             self._reset()
             self._are_dists_valid = True
-            return # Finished
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If we are not keeping pairwise distances valid, we are done
         if not keep_dists_valid:
             self._are_dists_valid = False
-            return
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If the distances are not valid to begin, need to recompute
         if not self._are_dists_valid:
             self.compute_dists()
-            return
+            return [ np.arange(0,self._no_pairs), np.arange(0,self._no_pairs_within_cutoff) ]
 
         # Idxs to delete in the pair list
         dists_idxs_delete = np.argwhere(self._idxs_first_particle_of_species_A == idx).flatten()
@@ -768,6 +797,8 @@ class PairDistCalculatorDifferentSpecies:
         shift_1 = np.argwhere(self._idxs_first_particle_of_species_A_within_cutoff > idx).flatten()
         self._idxs_first_particle_of_species_A_within_cutoff[shift_1] -= 1
 
+        return [dists_idxs_delete, cutoff_dists_idxs_delete]
+
 
 
     def remove_particle_of_species_B(self, idx, keep_dists_valid=True):
@@ -779,6 +810,13 @@ class PairDistCalculatorDifferentSpecies:
             The idx of the particle in the posn list.
         keep_dists_valid : bool
             Whether the keep the pairwise distances valid (the default is True).
+
+        Returns
+        -------
+        np.array([int])
+            Idxs of elements deleted from dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers.
+        np.array([int])
+            Idxs of elements deleted from cutoff_dists_squared / idxs_first_particle_of_species_A_within_cutoff / idxs_second_particle_of_species_B_within_cutoff / cutoff_centers.
 
         """
 
@@ -793,17 +831,17 @@ class PairDistCalculatorDifferentSpecies:
             # Reset
             self._reset()
             self._are_dists_valid = True
-            return # Finished
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If we are not keeping pairwise distances valid, we are done
         if not keep_dists_valid:
             self._are_dists_valid = False
-            return
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If the distances are not valid to begin, need to recompute
         if not self._are_dists_valid:
             self.compute_dists()
-            return
+            return [ np.arange(0,self._no_pairs), np.arange(0,self._no_pairs_within_cutoff) ]
 
         # Idxs to delete in the pair list
         dists_idxs_delete = np.argwhere(self._idxs_second_particle_of_species_B == idx).flatten()
@@ -818,6 +856,8 @@ class PairDistCalculatorDifferentSpecies:
 
         shift_1 = np.argwhere(self._idxs_second_particle_of_species_B_within_cutoff > idx).flatten()
         self._idxs_second_particle_of_species_B_within_cutoff[shift_1] -= 1
+
+        return [dists_idxs_delete, cutoff_dists_idxs_delete]
 
 
 
@@ -854,20 +894,33 @@ class PairDistCalculatorDifferentSpecies:
         keep_dists_valid : bool
             Whether to keep the pairwise distances correct (the default is True).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of elements deleted from dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers. Deletion occurs first.
+        np.array([int])
+            Idxs of new elements in dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers. Insertion of elements occurs after deletion.
+        np.array([int])
+            Idxs of elements deleted from cutoff_dists_squared / idxs_first_particle_of_species_Awithin_cutoff / idxs_second_particle_of_species_B_within_cutoff / cutoff_centers. Deletion occurs first.
+        np.array([int])
+            Idxs of new elements in cutoff_dists_squared / idxs_first_particle_of_species_A_within_cutoff / idxs_second_particle_of_species_Bwithin_cutoff / cutoff_centers. Insertion of elements occurs after deletion.
+
         """
 
         if self._track_labels:
             label = self._labels_species_A[idx]
 
             # Remove and reinsert
-            self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_A(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
+            idxs_deleted, cutoff_idxs_deleted = self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
+            idxs_inserted, cutoff_idxs_inserted = self.add_particle_of_species_A(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
-            self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_A(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
+            idxs_deleted, cutoff_idxs_deleted = self.remove_particle_of_species_A(idx, keep_dists_valid=keep_dists_valid)
+            idxs_inserted, cutoff_idxs_inserted = self.add_particle_of_species_A(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
+
+        return [idxs_deleted, idxs_inserted, cutoff_idxs_deleted, cutoff_idxs_inserted]
 
 
 
@@ -883,20 +936,33 @@ class PairDistCalculatorDifferentSpecies:
         keep_dists_valid : bool
             Whether to keep the pairwise distances correct (the default is True).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of elements deleted from dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers. Deletion occurs first.
+        np.array([int])
+            Idxs of new elements in dists_squared / idxs_first_particle_of_species_A / idxs_second_particle_of_species_B / centers. Insertion of elements occurs after deletion.
+        np.array([int])
+            Idxs of elements deleted from cutoff_dists_squared / idxs_first_particle_of_species_Awithin_cutoff / idxs_second_particle_of_species_B_within_cutoff / cutoff_centers. Deletion occurs first.
+        np.array([int])
+            Idxs of new elements in cutoff_dists_squared / idxs_first_particle_of_species_A_within_cutoff / idxs_second_particle_of_species_Bwithin_cutoff / cutoff_centers. Insertion of elements occurs after deletion.
+
         """
 
         if self._track_labels:
             label = self._labels_species_B[idx]
 
             # Remove and reinsert
-            self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_B(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
+            idxs_deleted, cutoff_idxs_deleted = self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
+            idxs_inserted, cutoff_idxs_inserted = self.add_particle_of_species_B(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
-            self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle_of_species_B(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
+            idxs_deleted, cutoff_idxs_deleted = self.remove_particle_of_species_B(idx, keep_dists_valid=keep_dists_valid)
+            idxs_inserted, cutoff_idxs_inserted = self.add_particle_of_species_B(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
+
+        return [idxs_deleted, idxs_inserted, cutoff_idxs_deleted, cutoff_idxs_inserted]
 
 
 

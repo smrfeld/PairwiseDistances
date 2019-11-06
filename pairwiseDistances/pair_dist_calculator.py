@@ -404,6 +404,13 @@ class PairDistCalculator:
         keep_dists_valid : bool
             Whether to keep pairwise dists valid, comprising an O(n) calculation (the default is None).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of new elements in dists_squared / idxs_first_particle / idxs_second_particle / centers.
+        np.array([int])
+            Idxs of new elements in cutoff_dists_squared / idxs_first_particle_within_cutoff / idxs_second_particle_within_cutoff / cutoff_centers.
+
         """
 
         if self._track_labels and label == None:
@@ -436,17 +443,17 @@ class PairDistCalculator:
         self._n += 1
 
         if self._n == 1:
-            return # Finished
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If we are not keeping pairwise dists valid, we are done
         if not keep_dists_valid:
             self._are_dists_valid = False
-            return
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If the dists are not valid to begin, need to recompute
         if not self._are_dists_valid:
             self.compute_dists()
-            return
+            return [ np.arange(0,self._no_pairs), np.arange(0,self._no_pairs_within_cutoff) ] # Finished
 
         # Shift idxs such that they do not refer to idx
         shift_1 = np.argwhere(self._idxs_first_particle >= idx).flatten()
@@ -484,6 +491,9 @@ class PairDistCalculator:
         self._dists_squared = np.append(self._dists_squared,dists_squared_add)
         self._no_pairs += len(dists_squared_add)
 
+        # Which idxs were added to dists_squared
+        idxs_inserted = np.arange(self._no_pairs-len(dists_squared_add),self._no_pairs)
+
         # Max dist
         if self._cutoff_dist != None:
             cutoff_dist_squared = pow(self._cutoff_dist,2)
@@ -517,7 +527,12 @@ class PairDistCalculator:
                 self._cutoff_centers = np.append(self._cutoff_centers, centers_add, axis=0)
 
         # Number of pairs now
-        self._no_pairs_within_cutoff += len(idxs_add_1)
+        self._no_pairs_within_cutoff += len(dists_squared_add)
+
+        # Which idxs were added to cutoff_dists_squared
+        cutoff_idxs_inserted = np.arange(self._no_pairs_within_cutoff-len(dists_squared_add),self._no_pairs_within_cutoff)
+
+        return [idxs_inserted, cutoff_idxs_inserted]
 
 
 
@@ -570,6 +585,13 @@ class PairDistCalculator:
         keep_dists_valid : bool
             Whether the keep the pairwise distances valid (the default is True).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of elements deleted from dists_squared / idxs_first_particle / idxs_second_particle / centers.
+        np.array([int])
+            Idxs of elements deleted from cutoff_dists_squared / idxs_first_particle_within_cutoff / idxs_second_particle_within_cutoff / cutoff_centers.
+
         """
 
         if self._track_labels:
@@ -580,17 +602,17 @@ class PairDistCalculator:
         self._n -= 1
 
         if self._n == 0:
-            return # Finished
+            return [ np.array([]).astype(int), np.array([]).astype(int) ] # Finished
 
         # If we are not keeping pairwise distances valid, we are done
         if not keep_dists_valid:
             self._are_dists_valid = False
-            return
+            return [ np.array([]).astype(int), np.array([]).astype(int) ]
 
         # If the distances are not valid to begin, need to recompute
         if not self._are_dists_valid:
             self.compute_dists()
-            return
+            return [ np.arange(0,self._no_pairs), np.arange(0,self._no_pairs_within_cutoff) ]
 
         # Idxs to delete in the pair list
         dists_idxs_delete_1 = np.argwhere(self._idxs_first_particle == idx).flatten()
@@ -629,6 +651,8 @@ class PairDistCalculator:
         shift_2 = np.argwhere(self._idxs_second_particle_within_cutoff > idx).flatten()
         self._idxs_second_particle_within_cutoff[shift_2] -= 1
 
+        return [dists_idxs_delete, cutoff_dists_idxs_delete]
+
 
 
     def move_particle(self, idx, new_posn, keep_dists_valid=True):
@@ -643,20 +667,33 @@ class PairDistCalculator:
         keep_dists_valid : bool
             Whether to keep the pairwise distances correct (the default is True).
 
+        Returns
+        -------
+        np.array([int])
+            Idxs of elements deleted from dists_squared / idxs_first_particle / idxs_second_particle / centers. Deletion occurs first.
+        np.array([int])
+            Idxs of new elements in dists_squared / idxs_first_particle / idxs_second_particle / centers. Insertion of elements occurs after deletion.
+        np.array([int])
+            Idxs of elements deleted from cutoff_dists_squared / idxs_first_particle_within_cutoff / idxs_second_particle_within_cutoff / cutoff_centers. Deletion occurs first.
+        np.array([int])
+            Idxs of new elements in cutoff_dists_squared / idxs_first_particle_within_cutoff / idxs_second_particle_within_cutoff / cutoff_centers. Insertion of elements occurs after deletion.
+
         """
 
         if self._track_labels:
             label = self._labels[idx]
 
             # Remove and reinsert
-            self.remove_particle(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
+            idxs_deleted, cutoff_idxs_deleted = self.remove_particle(idx, keep_dists_valid=keep_dists_valid)
+            idxs_inserted, cutoff_idxs_inserted = self.add_particle(new_posn, idx=idx, label=label, check_labels_unique=False, keep_dists_valid=keep_dists_valid)
 
         else:
 
             # Remove and reinsert
-            self.remove_particle(idx, keep_dists_valid=keep_dists_valid)
-            self.add_particle(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
+            idxs_deleted, cutoff_idxs_deleted = self.remove_particle(idx, keep_dists_valid=keep_dists_valid)
+            idxs_inserted, cutoff_idxs_inserted = self.add_particle(new_posn, idx=idx, keep_dists_valid=keep_dists_valid)
+
+        return [idxs_deleted, idxs_inserted, cutoff_idxs_deleted, cutoff_idxs_inserted]
 
 
 
