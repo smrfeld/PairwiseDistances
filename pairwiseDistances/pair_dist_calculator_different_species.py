@@ -471,10 +471,10 @@ class PairDistCalculatorDifferentSpecies:
                     raise ValueError("The provided label: " + str(label) + " of species A already exists! Labels must be unique.")
 
             # Insert
-            self._labels_species_A = np.insert(self._labels_species_A,idx,label,axis=0)
-            if len(self._labels_species_A) == 1 and type(self._labels_species_A[0]) != type(label):
-                # Fix type
-                self._labels_species_A = self._labels.astype(type(label))
+            if len(self._labels_species_A) == 0:
+                self._labels_species_A = np.array([label])
+            else:
+                self._labels_species_A = np.insert(self._labels_species_A,idx,label,axis=0)
 
         # Insert position
         self._posns_species_A = np.insert(self._posns_species_A,idx,posn,axis=0)
@@ -546,10 +546,10 @@ class PairDistCalculatorDifferentSpecies:
                     raise ValueError("The provided label: " + str(label) + " of species B already exists! Labels must be unique.")
 
             # Insert
-            self._labels_species_B = np.insert(self._labels_species_B,idx,label,axis=0)
-            if len(self._labels_species_B) == 1 and type(self._labels_species_B[0]) != type(label):
-                # Fix type
-                self._labels_species_B = self._labels.astype(type(label))
+            if len(self._labels_species_B) == 0:
+                self._labels_species_B = np.array([label])
+            else:
+                self._labels_species_B = np.insert(self._labels_species_B,idx,label,axis=0)
 
         # Insert position
         self._posns_species_B = np.insert(self._posns_species_B,idx,posn,axis=0)
