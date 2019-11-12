@@ -43,9 +43,6 @@ class PairDistCalculator:
             # Set
             self._labels = np.copy(labels)
 
-        # Initialize all manner of other properties for possible later use
-        self._reset()
-
         # Compute probs
         self.compute_dists()
 
@@ -308,6 +305,8 @@ class PairDistCalculator:
             else:
                 # Distances are not valid to begin with; recompute
                 self.compute_dists() # also runs _cut_off_dists
+        else:
+            self._are_dists_valid = False
 
 
 
@@ -331,9 +330,11 @@ class PairDistCalculator:
 
     def compute_dists(self):
 
+        # Reset
+        self._reset()
+
         # Check there are sufficient particles
         if self._n < 2:
-            self._reset()
             self._are_dists_valid = True
             return
 

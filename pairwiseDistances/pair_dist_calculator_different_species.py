@@ -55,9 +55,6 @@ class PairDistCalculatorDifferentSpecies:
             self._labels_species_A = np.copy(labels_species_A)
             self._labels_species_B = np.copy(labels_species_B)
 
-        # Initialize all manner of other properties for possible later use
-        self._reset()
-
         # Compute probs
         self.compute_dists()
 
@@ -356,6 +353,8 @@ class PairDistCalculatorDifferentSpecies:
             else:
                 # Distances are not valid to begin with; recompute
                 self.compute_dists() # also runs _cut_off_dists
+        else:
+            self._are_dists_valid = False
 
 
 
@@ -379,9 +378,11 @@ class PairDistCalculatorDifferentSpecies:
 
     def compute_dists(self):
 
+        # Reset
+        self._reset()
+
         # Check there are sufficient particles
         if self._n_species_A == 0 or self._n_species_B == 0:
-            self._reset()
             self._are_dists_valid = True
             return
 
