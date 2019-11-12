@@ -514,8 +514,8 @@ class PairDistCalculatorDifferentSpecies:
         self._idxs_first_particle_of_species_A_within_cutoff[shift_1] += 1
 
         # Idxs of particle pairs to add
-        # The new particle will be the last, ie index self._n_species_A-1
-        idxs_add_of_species_A = np.full(self._n_species_B, self._n_species_A-1)
+        # The new particle will be index idx
+        idxs_add_of_species_A = np.full(self._n_species_B, idx)
         # We must consider all n_species_B other particles
         idxs_add_of_species_B = np.arange(0,self._n_species_B)
 
@@ -597,8 +597,8 @@ class PairDistCalculatorDifferentSpecies:
         self._idxs_second_particle_of_species_B_within_cutoff[shift_1] += 1
 
         # Idxs of particle pairs to add
-        # The new particle will be the last, ie index self._n_species_B-1
-        idxs_add_of_species_B = np.full(self._n_species_A, self._n_species_B-1)
+        # The new particle will be index idx
+        idxs_add_of_species_B = np.full(self._n_species_A, idx)
         # We must consider all n_species_B other particles
         idxs_add_of_species_A = np.arange(0,self._n_species_A)
 
@@ -655,6 +655,7 @@ class PairDistCalculatorDifferentSpecies:
         # Append
         self._idxs_first_particle_of_species_A_within_cutoff = np.append(self._idxs_first_particle_of_species_A_within_cutoff,idxs_add_of_species_A)
         self._idxs_second_particle_of_species_B_within_cutoff = np.append(self._idxs_second_particle_of_species_B_within_cutoff,idxs_add_of_species_B)
+
         self._cutoff_dists_squared = np.append(self._cutoff_dists_squared,dists_squared_add)
 
         if self._calculate_track_centers:
