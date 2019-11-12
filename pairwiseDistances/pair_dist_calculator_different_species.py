@@ -433,6 +433,8 @@ class PairDistCalculatorDifferentSpecies:
             # Take all idxs
             self._idxs_first_particle_of_species_A_within_cutoff = np.copy(self._idxs_first_particle_of_species_A_within_cutoff)
             self._idxs_second_particle_of_species_B_within_cutoff = np.copy(self._idxs_second_particle_of_species_B_within_cutoff)
+            self._cutoff_dists_squared = np.copy(self._dists_squared)
+            self._cutoff_centers = np.copy(self._centers)
 
         # No idx pairs
         self._no_pairs_within_cutoff = len(self._idxs_first_particle_of_species_A_within_cutoff)
