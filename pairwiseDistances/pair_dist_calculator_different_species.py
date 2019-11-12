@@ -745,6 +745,30 @@ class PairDistCalculatorDifferentSpecies:
 
 
 
+    def remove_all_particles_of_species_A(self):
+        """Remove all particles of species A.
+
+        """
+        self._posns_species_A = np.array([]).astype(float)
+        self._n_species_A = 0
+        self._labels_species_A = np.array([])
+        self._reset()
+        self._are_dists_valid = True
+
+
+
+    def remove_all_particles_of_species_B(self):
+        """Remove all particles of species B.
+
+        """
+        self._posns_species_B = np.array([]).astype(float)
+        self._n_species_B = 0
+        self._labels_species_B = np.array([])
+        self._reset()
+        self._are_dists_valid = True
+
+
+
     def remove_particle_of_species_A(self, idx, keep_dists_valid=True):
         """Remove a particle of species A, performing O(n) calculation to keep pairwise distances correct if keep_dists_valid==True.
 
