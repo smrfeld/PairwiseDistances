@@ -404,6 +404,34 @@ class TestDifferentSpecies:
         assert pdc.n_species_A == 0
         assert pdc.n_species_B == 0
 
+    def test_remove_all_particles_of_species_A(self):
+
+        self.make_particles()
+
+        cutoff_dist = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
+
+        pdc.remove_all_particles_of_species_A()
+
+        assert pdc.n_species_A == 0
+        assert pdc.n_species_B != 0
+        assert pdc.no_pairs == 0
+        assert pdc.no_pairs_within_cutoff == 0
+
+    def test_remove_all_particles_of_species_B(self):
+
+        self.make_particles()
+
+        cutoff_dist = 0.3
+        pdc = PairDistCalculatorDifferentSpecies(self.posns_A, self.posns_B, self.dim, cutoff_dist=cutoff_dist)
+
+        pdc.remove_all_particles_of_species_B()
+
+        assert pdc.n_species_A != 0
+        assert pdc.n_species_B == 0
+        assert pdc.no_pairs == 0
+        assert pdc.no_pairs_within_cutoff == 0
+
     def test_compute_dists_squared_between_particle_of_species_A_and_existing(self):
 
         self.make_particles()
