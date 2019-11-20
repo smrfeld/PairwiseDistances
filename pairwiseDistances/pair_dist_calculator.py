@@ -757,7 +757,7 @@ class PairDistCalculator:
         """
 
         if self._n == 0:
-            return [np.array([]), np.array([]), np.array([])]
+            return [np.array([]).astype(float), np.array([]).astype(int), np.array([]).astype(float)]
 
         # Distances squared
         dr = self._posns - posn

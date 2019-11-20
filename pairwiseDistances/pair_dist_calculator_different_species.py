@@ -1071,7 +1071,7 @@ class PairDistCalculatorDifferentSpecies:
         """
 
         if self._n_species_B == 0:
-            return [np.array([]), np.array([]), np.array([])]
+            return [np.array([]).astype(float), np.array([]).astype(int), np.array([]).astype(float)]
 
         # Distances squared
         dr = self._posns_species_B - posn
@@ -1117,7 +1117,7 @@ class PairDistCalculatorDifferentSpecies:
         """
 
         if self._n_species_A == 0:
-            return [np.array([]), np.array([]), np.array([])]
+            return [np.array([]).astype(float), np.array([]).astype(int), np.array([]).astype(float)]
 
         # Distances squared
         dr = self._posns_species_A - posn
