@@ -4,7 +4,7 @@ setup(
     name='PairwiseDistances',
     version='1.0',
     author='Oliver K. Ernst',
-    packages=['pairwiseDistances','examples'],
+    packages=['pairwiseDistances'],
     install_requires=[
           'numpy'
       ],
